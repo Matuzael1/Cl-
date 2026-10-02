@@ -5,8 +5,10 @@ Site Flask do clã BlackWoves, com painel administrativo, inscrições cifradas 
 ## Rodar localmente
 
 ```powershell
-py -m venv .venv
-.venv\Scripts\python.exe -m pip install -r requirements.txt
+$env:PYTHON = "$env:LOCALAPPDATA\Programs\Python\Python312\python.exe"
+& $env:PYTHON -m venv .venv
+if ($LASTEXITCODE -ne 0) { throw "Não foi possível criar .venv" }
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
 Copy-Item .env.example .env
 ```
 
@@ -15,7 +17,7 @@ Antes de iniciar, edite `.env`: use `APP_ENV=development`, escolha uma senha loc
 Antes de abrir o formulário, gere as chaves E2EE no computador que ficará com a chave privada:
 
 ```powershell
-py scripts/generate_recruitment_keys.py
+.\.venv\Scripts\python.exe scripts/generate_recruitment_keys.py
 ```
 
 O arquivo `static/recruitment-public.pem` é público e deve ser publicado junto com o site. A chave `.secrets/recruitment-private.pem` é privada: não a envie ao GitHub, VPS, e-mail ou chat. Mantenha cópias de segurança offline em local protegido. Configure valores reais no `.env`; este arquivo é ignorado pelo Git.
@@ -23,8 +25,10 @@ O arquivo `static/recruitment-public.pem` é público e deve ser publicado junto
 Depois dessa configuração, inicie o servidor local:
 
 ```powershell
-py app.py
+.\.venv\Scripts\python.exe app.py
 ```
+
+Abra `http://127.0.0.1:5000`. Se a porta 5000 já estiver ocupada, use `$env:PORT = '5001'` antes do comando e abra `http://127.0.0.1:5001`.
 
 ## Publicação no VPS
 
