@@ -1,12 +1,56 @@
 import os
+import smtplib
 import sqlite3
+from email.message import EmailMessage
 
 from flask import Flask, g, redirect, render_template, request, session, url_for
 from werkzeug.security import check_password_hash, generate_password_hash
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'blackwoves-2026-secret'
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'blackwoves-2026-secret')
 DATABASE = os.path.join(app.root_path, 'blackwoves.db')
+SMTP_HOST = os.getenv('SMTP_HOST', 'smtp.gmail.com')
+SMTP_PORT = int(os.getenv('SMTP_PORT', '587'))
+EMAIL_FROM = os.getenv('EMAIL_FROM', 'black.wolves.gm@gmail.com')
+EMAIL_TO = os.getenv('EMAIL_TO', 'black.wolves.gm@gmail.com')
+SMTP_USERNAME = os.getenv('SMTP_USERNAME', EMAIL_FROM)
+SMTP_PASSWORD = os.getenv('SMTP_PASSWORD', '')
+
+application = app
+
+
+def send_recruitment_email(dados):
+    if not SMTP_PASSWORD:
+        print('SMTP_PASSWORD não configurado. A inscrição foi salva, mas o e-mail não foi enviado.')
+        return False
+
+    mensagem = EmailMessage()
+    mensagem['Subject'] = f"Nova inscrição para recrutamento - {dados.get('nome', 'Desconhecido')}"
+    mensagem['From'] = EMAIL_FROM
+    mensagem['To'] = EMAIL_TO
+
+    corpo = (
+        'Nova inscrição para recrutamento - BlackWoves\n\n'
+        f"Nome: {dados.get('nome', '')}\n"
+        f"Nick no jogo: {dados.get('nick', '')}\n"
+        f"Idade: {dados.get('idade', '')}\n"
+        f"E-mail: {dados.get('email', '')}\n"
+        f"Função preferida: {dados.get('funcao', '')}\n"
+        f"Discord: {dados.get('discord', '')}\n"
+        f"Experiência: {dados.get('experiencia', '')}\n"
+        f"Aceitou os termos: {dados.get('aceite', '')}\n"
+    )
+    mensagem.set_content(corpo)
+
+    try:
+        with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as smtp:
+            smtp.starttls()
+            smtp.login(SMTP_USERNAME, SMTP_PASSWORD)
+            smtp.send_message(mensagem)
+        return True
+    except (smtplib.SMTPException, OSError) as exc:
+        print(f'Erro ao enviar e-mail de recrutamento: {exc}')
+        return False
 
 
 def get_db():
@@ -170,9 +214,11 @@ def recrutamento():
         nome = request.form.get('nome', '').strip()
         nick = request.form.get('nick', '').strip()
         email = request.form.get('email', '').strip()
+        idade = request.form.get('idade', '').strip()
         funcao = request.form.get('role', '').strip()
         experiencia = request.form.get('experiencia', '').strip()
         discord = request.form.get('discord', '').strip()
+        aceite = request.form.get('aceite', 'não')
 
         if nome and nick and email:
             db = get_db()
@@ -181,6 +227,18 @@ def recrutamento():
                 (nome, nick, email, funcao, experiencia, discord),
             )
             db.commit()
+
+            dados_email = {
+                'nome': nome,
+                'nick': nick,
+                'idade': idade,
+                'email': email,
+                'funcao': funcao,
+                'experiencia': experiencia,
+                'discord': discord,
+                'aceite': 'sim' if aceite else 'não',
+            }
+            send_recruitment_email(dados_email)
             sucesso = True
 
     return render_template('recrutamento.html', sucesso=sucesso, nome=nome)
@@ -327,4 +385,4 @@ def painel_remover(member_id):
 
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    app.run(debug=False, host='0.0.0.0', port=int(os.getenv('PORT', '5000')))
