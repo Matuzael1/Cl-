@@ -2,6 +2,7 @@ __pycache__/
 *.pyc
 .venv/
 .env
+.secrets/
 .blackwoves.db
 blackwoves.db
 .DS_Store
