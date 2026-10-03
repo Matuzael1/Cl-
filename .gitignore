@@ -5,8 +5,8 @@ __pycache__/
 .env.*
 !.env.example
 .secrets/
-.blackwoves.db
-blackwoves.db
+.blackwolves.db
+blackwolves.db
 *.db-journal
 *.db-shm
 *.db-wal

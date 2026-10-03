@@ -6,6 +6,7 @@ import os
 import re
 import secrets
 import smtplib
+import socket
 import sqlite3
 from datetime import datetime, timedelta, timezone
 from email.message import EmailMessage
@@ -20,7 +21,33 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 load_dotenv(os.path.join(os.path.dirname(__file__), '.env'))
 
+
+def ensure_local_dev_defaults():
+    values = {}
+
+    if not os.getenv('SECRET_KEY'):
+        values['SECRET_KEY'] = secrets.token_urlsafe(32)
+        os.environ['SECRET_KEY'] = values['SECRET_KEY']
+
+    if not os.getenv('ADMIN_USERNAME'):
+        values['ADMIN_USERNAME'] = 'blackwolves-admin'
+        os.environ['ADMIN_USERNAME'] = values['ADMIN_USERNAME']
+
+    if not os.getenv('ADMIN_PASSWORD'):
+        values['ADMIN_PASSWORD'] = 'Blackwolves@Admin2026!'
+        os.environ['ADMIN_PASSWORD'] = values['ADMIN_PASSWORD']
+
+    if not os.getenv('NEWSLETTER_FERNET_KEY'):
+        values['NEWSLETTER_FERNET_KEY'] = Fernet.generate_key().decode('ascii')
+        os.environ['NEWSLETTER_FERNET_KEY'] = values['NEWSLETTER_FERNET_KEY']
+
+    return values
+
+
 app = Flask(__name__)
+if os.getenv('APP_ENV') != 'production':
+    ensure_local_dev_defaults()
+
 secret_key = os.getenv('SECRET_KEY')
 if os.getenv('APP_ENV') == 'production':
     if not secret_key or len(secret_key) < 32 or secret_key.startswith('gere-'):
@@ -41,7 +68,7 @@ app.config['SESSION_COOKIE_SECURE'] = os.getenv('APP_ENV') == 'production'
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 app.config['MAX_CONTENT_LENGTH'] = 128 * 1024
-DATABASE = os.getenv('DATABASE_PATH', os.path.join(app.root_path, 'blackwoves.db'))
+DATABASE = os.getenv('DATABASE_PATH', os.path.join(app.root_path, 'blackwolves.db'))
 SMTP_HOST = os.getenv('SMTP_HOST', 'smtp.gmail.com')
 SMTP_PORT = int(os.getenv('SMTP_PORT', '587'))
 EMAIL_FROM = os.getenv('EMAIL_FROM', 'black.wolves.gm@gmail.com')
@@ -61,10 +88,10 @@ def send_recruitment_notification():
         return False
 
     mensagem = EmailMessage()
-    mensagem['Subject'] = 'Nova inscrição cifrada - BlackWoves'
+    mensagem['Subject'] = 'Nova inscrição cifrada - Blackwolves'
     mensagem['From'] = EMAIL_FROM
     mensagem['To'] = EMAIL_TO
-    mensagem.set_content('Uma nova inscrição cifrada está disponível no painel BlackWoves.')
+    mensagem.set_content('Uma nova inscrição cifrada está disponível no painel Blackwolves.')
 
     try:
         with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as smtp:
@@ -106,7 +133,7 @@ def newsletter_fernet():
 
 def newsletter_email_digest(email):
     key = base64.urlsafe_b64decode(NEWSLETTER_FERNET_KEY.encode('ascii'))
-    lookup_key = hashlib.sha256(key + b'blackwoves-newsletter-lookup').digest()
+    lookup_key = hashlib.sha256(key + b'blackwolves-newsletter-lookup').digest()
     return hmac.new(lookup_key, email.strip().lower().encode('utf-8'), hashlib.sha256).hexdigest()
 
 
@@ -238,6 +265,13 @@ def init_db():
             unsubscribed_at TEXT,
             created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
         );
+
+        CREATE TABLE IF NOT EXISTS banimentos (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            nick TEXT UNIQUE NOT NULL,
+            motivo TEXT NOT NULL,
+            created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+        );
         """
     )
 
@@ -363,6 +397,15 @@ def galeria():
     return render_template('galeria.html', imagens=imagens)
 
 
+@app.route('/banimentos')
+def banimentos():
+    db = get_db()
+    lista_banimentos = db.execute(
+        'SELECT * FROM banimentos ORDER BY created_at DESC, nick ASC'
+    ).fetchall()
+    return render_template('banimentos.html', banimentos=lista_banimentos)
+
+
 @app.route('/recrutamento', methods=['GET', 'POST'])
 def recrutamento():
     if request.method == 'POST':
@@ -426,7 +469,7 @@ def novidades():
                 status = 'Confira sua caixa de entrada para confirmar a inscrição.'
                 if not send_plain_email(
                     email,
-                    'Confirme as novidades BlackWoves',
+                    'Confirme as novidades Blackwolves',
                     f'Para confirmar o recebimento de novidades do clã, acesse:\n{confirm_url}\n\n'
                     'O link expira em 48 horas. Se você não solicitou a inscrição, ignore esta mensagem.',
                 ):
@@ -460,7 +503,7 @@ def confirm_newsletter(token):
         (datetime.now(timezone.utc).isoformat(), subscriber['id']),
     )
     db.commit()
-    return render_template('newsletter-result.html', message='Inscrição confirmada. Você receberá as novidades do BlackWoves.')
+    return render_template('newsletter-result.html', message='Inscrição confirmada. Você receberá as novidades do Blackwolves.')
 
 
 @app.route('/novidades/cancelar/<token>', methods=['GET', 'POST'])
@@ -555,12 +598,14 @@ def painel():
     db = get_db()
     membros_db = db.execute('SELECT * FROM members ORDER BY nome ASC').fetchall()
     inscricoes = db.execute('SELECT * FROM encrypted_applications ORDER BY created_at DESC').fetchall()
+    banimentos = db.execute('SELECT * FROM banimentos ORDER BY created_at DESC').fetchall()
     total_membros = db.execute('SELECT COUNT(*) FROM members').fetchone()[0]
     total_inscricoes = db.execute('SELECT COUNT(*) FROM encrypted_applications').fetchone()[0]
     ativos = db.execute("SELECT COUNT(*) FROM members WHERE status = 'ativo'").fetchone()[0]
     total_assinantes = db.execute(
         'SELECT COUNT(*) FROM newsletter_subscribers WHERE confirmed_at IS NOT NULL AND unsubscribed_at IS NULL'
     ).fetchone()[0]
+    total_banidos = db.execute('SELECT COUNT(*) FROM banimentos').fetchone()[0]
 
     stats = {
         'membros': total_membros,
@@ -568,10 +613,11 @@ def painel():
         'ativos': ativos,
         'ranking': 'Top 5',
         'assinantes': total_assinantes,
+        'banidos': total_banidos,
     }
 
     csrf_token = session.setdefault('newsletter_csrf_token', secrets.token_urlsafe(32))
-    return render_template('painel.html', membros_cla=membros_db, inscricoes=inscricoes, stats=stats, csrf_token=csrf_token)
+    return render_template('painel.html', membros_cla=membros_db, inscricoes=inscricoes, banimentos=banimentos, stats=stats, csrf_token=csrf_token)
 
 
 @app.route('/painel/newsletter/enviar', methods=['POST'])
@@ -607,6 +653,40 @@ def painel_newsletter_enviar():
             sent += 1
 
     flash(f'E-mail enviado para {sent} de {len(subscribers)} assinante(s) confirmado(s).', 'success' if sent else 'error')
+    return redirect(url_for('painel'))
+
+
+@app.route('/painel/banir', methods=['POST'])
+def painel_banir():
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+
+    nick = request.form.get('nick', '').strip()
+    motivo = request.form.get('motivo', '').strip()
+    if nick and motivo:
+        db = get_db()
+        db.execute(
+            'INSERT INTO banimentos (nick, motivo) VALUES (?, ?) '
+            'ON CONFLICT(nick) DO UPDATE SET motivo = excluded.motivo, created_at = CURRENT_TIMESTAMP',
+            (nick, motivo),
+        )
+        db.commit()
+        flash(f'Jogador "{nick}" adicionado à lista de banimento.', 'success')
+    else:
+        flash('Preencha nick e motivo para registrar o banimento.', 'error')
+
+    return redirect(url_for('painel'))
+
+
+@app.route('/painel/remover-banimento/<int:ban_id>', methods=['POST'])
+def painel_remover_banimento(ban_id):
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+
+    db = get_db()
+    db.execute('DELETE FROM banimentos WHERE id = ?', (ban_id,))
+    db.commit()
+    flash('Registro removido da lista de banimento.', 'success')
     return redirect(url_for('painel'))
 
 
@@ -665,5 +745,39 @@ def painel_remover(member_id):
     return redirect(url_for('painel'))
 
 
+def resolve_ports():
+    configured = os.getenv('PORTS') or os.getenv('PORT', '5000,5001,5002,5003,5004,5005')
+    values = []
+    for chunk in str(configured).replace(' ', '').split(','):
+        if not chunk:
+            continue
+        if '-' in chunk:
+            start, end = chunk.split('-', 1)
+            try:
+                values.extend(range(int(start), int(end) + 1))
+            except ValueError:
+                continue
+        else:
+            try:
+                values.append(int(chunk))
+            except ValueError:
+                continue
+    return values or [5000, 5001, 5002, 5003, 5004, 5005]
+
+
+def choose_port(ports):
+    for port in ports:
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+            sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            try:
+                sock.bind(('0.0.0.0', port))
+                return port
+            except OSError:
+                continue
+    return ports[0]
+
+
 if __name__ == '__main__':
-    app.run(debug=False, host='0.0.0.0', port=int(os.getenv('PORT', '5000')))
+    selected_port = choose_port(resolve_ports())
+    print(f'Usando porta disponível: {selected_port}')
+    app.run(debug=False, host='0.0.0.0', port=selected_port)

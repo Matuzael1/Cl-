@@ -1,6 +1,6 @@
-# BlackWoves Site
+# Blackwolves Site
 
-Site Flask do clã BlackWoves, com painel administrativo, inscrições cifradas no navegador e lista de novidades por e-mail.
+Site Flask do clã Blackwolves, com painel administrativo, inscrições cifradas no navegador e lista de novidades por e-mail.
 
 ## Rodar localmente
 
@@ -32,15 +32,15 @@ Abra `http://127.0.0.1:5000`. Se a porta 5000 já estiver ocupada, use `$env:POR
 
 ## Publicação no VPS
 
-São necessários um VPS Ubuntu com acesso sudo, o domínio `blackwoves.com.br`, acesso ao DNS e um repositório GitHub. Esses recursos externos não podem ser criados ou ativados pelo código local.
+São necessários um VPS Ubuntu com acesso sudo, o domínio `blackwolves.com.br`, acesso ao DNS e um repositório GitHub. Esses recursos externos não podem ser criados ou ativados pelo código local.
 
 ### 1. Preparar o DNS
 
-No provedor do domínio, crie um registro `A` para `blackwoves.com.br` apontando ao IPv4 do VPS e outro `A` para `www` apontando ao mesmo endereço. Aguarde a propagação antes de solicitar o certificado.
+No provedor do domínio, crie um registro `A` para `blackwolves.com.br` apontando ao IPv4 do VPS e outro `A` para `www` apontando ao mesmo endereço. Aguarde a propagação antes de solicitar o certificado.
 
 ### 2. Preparar o repositório
 
-No GitHub, crie um repositório e publique o projeto na branch `main`. Confirme que `static/recruitment-public.pem` está incluída e que `.secrets/`, `.env` e `blackwoves.db` não estão versionados. Nunca use `--force` para gerar outra chave depois de receber inscrições: inscrições antigas dependem da chave privada original.
+No GitHub, crie um repositório e publique o projeto na branch `main`. Confirme que `static/recruitment-public.pem` está incluída e que `.secrets/`, `.env` e `blackwolves.db` não estão versionados. Nunca use `--force` para gerar outra chave depois de receber inscrições: inscrições antigas dependem da chave privada original.
 
 ### 3. Preparar o VPS
 
@@ -49,17 +49,17 @@ Conecte por SSH e instale os pacotes:
 ```bash
 sudo apt update
 sudo apt install -y python3 python3-venv python3-pip git nginx certbot python3-certbot-nginx
-sudo adduser --system --group --home /home/blackwoves blackwoves
-sudo -u blackwoves git clone https://github.com/SEU_USUARIO/SEU_REPOSITORIO.git /home/blackwoves/BlackWovesSite
-cd /home/blackwoves/BlackWovesSite
-sudo -u blackwoves python3 -m venv .venv
-sudo -u blackwoves .venv/bin/pip install -r requirements.txt
-sudo cp systemd/blackwoves.service /etc/systemd/system/blackwoves.service
-sudo cp nginx/blackwoves.conf /etc/nginx/sites-available/blackwoves
-sudo ln -s /etc/nginx/sites-available/blackwoves /etc/nginx/sites-enabled/blackwoves
+sudo adduser --system --group --home /home/blackwolves blackwolves
+sudo -u blackwolves git clone https://github.com/SEU_USUARIO/SEU_REPOSITORIO.git /home/blackwolves/BlackwolvesSite
+cd /home/blackwolves/BlackwolvesSite
+sudo -u blackwolves python3 -m venv .venv
+sudo -u blackwolves .venv/bin/pip install -r requirements.txt
+sudo cp systemd/blackwolves.service /etc/systemd/system/blackwolves.service
+sudo cp nginx/blackwolves.conf /etc/nginx/sites-available/blackwolves
+sudo ln -s /etc/nginx/sites-available/blackwolves /etc/nginx/sites-enabled/blackwolves
 ```
 
-Configure `/home/blackwoves/BlackWovesSite/.env` com valores reais e não compartilhe o arquivo. Gere `SECRET_KEY` com `python3 -c 'import secrets; print(secrets.token_hex(32))'`. Defina `APP_ENV=production`, um `ADMIN_USERNAME` e uma senha forte e exclusiva em `ADMIN_PASSWORD`. Para Gmail, ative a verificação em duas etapas e use uma senha de app em `SMTP_PASSWORD`, não a senha normal da conta.
+Configure `/home/blackwolves/BlackwolvesSite/.env` com valores reais e não compartilhe o arquivo. Gere `SECRET_KEY` com `python3 -c 'import secrets; print(secrets.token_hex(32))'`. Defina `APP_ENV=production`, um `ADMIN_USERNAME` e uma senha forte e exclusiva em `ADMIN_PASSWORD`. Para Gmail, ative a verificação em duas etapas e use uma senha de app em `SMTP_PASSWORD`, não a senha normal da conta.
 
 Gere também a chave para cifrar a lista de e-mails e salve o valor em `NEWSLETTER_FERNET_KEY` no `.env`:
 
@@ -70,16 +70,16 @@ python3 -c 'from cryptography.fernet import Fernet; print(Fernet.generate_key().
 Mantenha uma cópia segura dessa chave fora do repositório. Ela é necessária para enviar mensagens à lista já cadastrada; perder ou trocar a chave sem migração torna os endereços armazenados ilegíveis.
 
 ```bash
-sudo chown blackwoves:blackwoves /home/blackwoves/BlackWovesSite/.env
-sudo chmod 600 /home/blackwoves/BlackWovesSite/.env
+sudo chown blackwolves:blackwolves /home/blackwolves/BlackwolvesSite/.env
+sudo chmod 600 /home/blackwolves/BlackwolvesSite/.env
 sudo systemctl daemon-reload
-sudo systemctl enable --now blackwoves
+sudo systemctl enable --now blackwolves
 sudo nginx -t
 sudo systemctl reload nginx
-sudo certbot --nginx -d blackwoves.com.br -d www.blackwoves.com.br --redirect
+sudo certbot --nginx -d blackwolves.com.br -d www.blackwolves.com.br --redirect
 ```
 
-Confira o site em `https://blackwoves.com.br` e o serviço com `sudo systemctl status blackwoves`. Depois que o Certbot configurar TLS, force HTTPS no Nginx e verifique a renovação com `sudo certbot renew --dry-run`.
+Confira o site em `https://blackwolves.com.br` e o serviço com `sudo systemctl status blackwolves`. Depois que o Certbot configurar TLS, force HTTPS no Nginx e verifique a renovação com `sudo certbot renew --dry-run`.
 
 ### 4. Ativar deploy pelo GitHub Actions
 
@@ -89,9 +89,9 @@ Crie uma chave SSH dedicada para deploy, instale a chave pública no usuário de
 - `SERVER_KNOWN_HOSTS`: linha verificada do `known_hosts` do VPS, obtida por canal confiável.
 - `SERVER_USER`: usuário SSH de deploy.
 - `SERVER_HOST`: IP ou hostname do VPS.
-- `APP_DIR`: `/home/blackwoves/BlackWovesSite`.
+- `APP_DIR`: `/home/blackwolves/BlackwolvesSite`.
 
-O usuário de deploy precisa poder executar `systemctl restart blackwoves` por sudo sem senha, atualizar o repositório e gravar em `.venv`. Faça push em `main`; acompanhe **Actions** no GitHub. Configure o remoto do repositório no VPS antes do primeiro deploy. Não coloque a chave E2EE privada entre os secrets do GitHub Actions.
+O usuário de deploy precisa poder executar `systemctl restart blackwolves` por sudo sem senha, atualizar o repositório e gravar em `.venv`. Faça push em `main`; acompanhe **Actions** no GitHub. Configure o remoto do repositório no VPS antes do primeiro deploy. Não coloque a chave E2EE privada entre os secrets do GitHub Actions.
 
 ## Como a proteção funciona
 
@@ -105,6 +105,6 @@ O usuário de deploy precisa poder executar `systemctl restart blackwoves` por s
 ## Arquivos de produção
 
 - `gunicorn.conf.py`: servidor WSGI.
-- `nginx/blackwoves.conf`: proxy HTTP inicial; Certbot configura HTTPS.
-- `systemd/blackwoves.service`: serviço persistente.
+- `nginx/blackwolves.conf`: proxy HTTP inicial; Certbot configura HTTPS.
+- `systemd/blackwolves.service`: serviço persistente.
 - `.github/workflows/deploy.yml`: publicação por push na branch `main`.
