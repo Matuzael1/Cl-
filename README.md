@@ -2,6 +2,8 @@
 
 Site Flask do clã Blackwolves, com painel administrativo, inscrições cifradas no navegador e lista de novidades por e-mail.
 
+Para publicar pela primeira vez com bootstrap de VPS, DNS, HTTPS e deploy automático, siga [DEPLOYMENT.md](DEPLOYMENT.md). O deploy real depende de criar o repositório GitHub, configurar o DNS, ter um VPS e fornecer a senha SMTP diretamente no servidor.
+
 ## Rodar localmente
 
 ```powershell
@@ -34,6 +36,8 @@ Abra `http://127.0.0.1:5000`. Se a porta 5000 já estiver ocupada, use `$env:POR
 
 São necessários um VPS Ubuntu com acesso sudo, o domínio `blackwolves.com.br`, acesso ao DNS e um repositório GitHub. Esses recursos externos não podem ser criados ou ativados pelo código local.
 
+O caminho recomendado de primeira instalação está em [DEPLOYMENT.md](DEPLOYMENT.md). A seção abaixo mantém o procedimento manual como alternativa.
+
 ### 1. Preparar o DNS
 
 No provedor do domínio, crie um registro `A` para `blackwolves.com.br` apontando ao IPv4 do VPS e outro `A` para `www` apontando ao mesmo endereço. Aguarde a propagação antes de solicitar o certificado.
@@ -50,6 +54,7 @@ Conecte por SSH e instale os pacotes:
 sudo apt update
 sudo apt install -y python3 python3-venv python3-pip git nginx certbot python3-certbot-nginx
 sudo adduser --system --group --home /home/blackwolves blackwolves
+sudo install -d -o blackwolves -g blackwolves -m 0750 /home/blackwolves/data
 sudo -u blackwolves git clone https://github.com/SEU_USUARIO/SEU_REPOSITORIO.git /home/blackwolves/BlackwolvesSite
 cd /home/blackwolves/BlackwolvesSite
 sudo -u blackwolves python3 -m venv .venv
@@ -60,6 +65,8 @@ sudo ln -s /etc/nginx/sites-available/blackwolves /etc/nginx/sites-enabled/black
 ```
 
 Configure `/home/blackwolves/BlackwolvesSite/.env` com valores reais e não compartilhe o arquivo. Gere `SECRET_KEY` com `python3 -c 'import secrets; print(secrets.token_hex(32))'`. Defina `APP_ENV=production`, um `ADMIN_USERNAME` e uma senha forte e exclusiva em `ADMIN_PASSWORD`. Para Gmail, ative a verificação em duas etapas e use uma senha de app em `SMTP_PASSWORD`, não a senha normal da conta.
+
+Defina também `DATABASE_PATH=/home/blackwolves/data/blackwolves.db` no `.env`. A pasta de dados fica fora do checkout Git e é a única pasta gravável pelo serviço systemd.
 
 Gere também a chave para cifrar a lista de e-mails e salve o valor em `NEWSLETTER_FERNET_KEY` no `.env`:
 
@@ -83,7 +90,7 @@ Confira o site em `https://blackwolves.com.br` e o serviço com `sudo systemctl 
 
 ### 4. Ativar deploy pelo GitHub Actions
 
-Crie uma chave SSH dedicada para deploy, instale a chave pública no usuário de deploy do VPS e configure sudo sem senha restrito ao comando de reinício do serviço. Em **Settings > Secrets and variables > Actions**, cadastre:
+Use o usuário `deploy` criado pelo bootstrap e instale uma chave SSH dedicada. Em **Settings > Secrets and variables > Actions**, cadastre:
 
 - `SSH_PRIVATE_KEY`: chave SSH privada do deploy.
 - `SERVER_KNOWN_HOSTS`: linha verificada do `known_hosts` do VPS, obtida por canal confiável.
@@ -91,7 +98,7 @@ Crie uma chave SSH dedicada para deploy, instale a chave pública no usuário de
 - `SERVER_HOST`: IP ou hostname do VPS.
 - `APP_DIR`: `/home/blackwolves/BlackwolvesSite`.
 
-O usuário de deploy precisa poder executar `systemctl restart blackwolves` por sudo sem senha, atualizar o repositório e gravar em `.venv`. Faça push em `main`; acompanhe **Actions** no GitHub. Configure o remoto do repositório no VPS antes do primeiro deploy. Não coloque a chave E2EE privada entre os secrets do GitHub Actions.
+O bootstrap cria regras sudo restritas para o usuário `deploy`: ele só pode atualizar o checkout como `blackwolves`, instalar as dependências definidas pelo repositório e reiniciar o serviço. Faça push em `main`; o workflow executa os testes antes de publicar e verifica `https://blackwolves.com.br/healthz` depois do restart. Não coloque a chave E2EE privada entre os secrets do GitHub Actions.
 
 ## Como a proteção funciona
 

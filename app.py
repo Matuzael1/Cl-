@@ -16,7 +16,7 @@ from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from dotenv import load_dotenv
-from flask import Flask, flash, g, jsonify, redirect, render_template, request, session, url_for
+from flask import Flask, abort, flash, g, jsonify, redirect, render_template, request, session, url_for
 from werkzeug.security import check_password_hash, generate_password_hash
 
 load_dotenv(os.path.join(os.path.dirname(__file__), '.env'))
@@ -67,7 +67,7 @@ app.config['SECRET_KEY'] = secret_key or os.urandom(32)
 app.config['SESSION_COOKIE_SECURE'] = os.getenv('APP_ENV') == 'production'
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
-app.config['MAX_CONTENT_LENGTH'] = 128 * 1024
+app.config['MAX_CONTENT_LENGTH'] = 192 * 1024
 DATABASE = os.getenv('DATABASE_PATH', os.path.join(app.root_path, 'blackwolves.db'))
 SMTP_HOST = os.getenv('SMTP_HOST', 'smtp.gmail.com')
 SMTP_PORT = int(os.getenv('SMTP_PORT', '587'))
@@ -80,6 +80,37 @@ APP_DOMAIN = os.getenv('APP_DOMAIN', '127.0.0.1:5000')
 PUBLIC_BASE_URL = os.getenv('PUBLIC_BASE_URL', f"https://{APP_DOMAIN}" if os.getenv('APP_ENV') == 'production' else 'http://127.0.0.1:5000').rstrip('/')
 
 application = app
+
+
+def get_csrf_token():
+    return session.setdefault('_csrf_token', secrets.token_urlsafe(32))
+
+
+@app.context_processor
+def inject_csrf_token():
+    return {'csrf_token': get_csrf_token()}
+
+
+@app.before_request
+def protect_form_posts():
+    if request.method != 'POST' or (request.endpoint == 'recrutamento' and request.is_json):
+        return
+
+    expected = session.get('_csrf_token', '')
+    submitted = request.form.get('csrf_token', '')
+    if not expected or not hmac.compare_digest(expected, submitted):
+        abort(400)
+
+
+@app.after_request
+def add_security_headers(response):
+    response.headers.setdefault('X-Content-Type-Options', 'nosniff')
+    response.headers.setdefault('X-Frame-Options', 'DENY')
+    response.headers.setdefault('Referrer-Policy', 'strict-origin-when-cross-origin')
+    response.headers.setdefault('Permissions-Policy', 'camera=(), microphone=(), geolocation=()')
+    if os.getenv('APP_ENV') == 'production':
+        response.headers.setdefault('Strict-Transport-Security', 'max-age=31536000; includeSubDomains')
+    return response
 
 
 def send_recruitment_notification():
@@ -315,10 +346,9 @@ def init_db():
         db.executemany(
             'INSERT INTO members (nome, cargo, funcao, nivel, status) VALUES (?, ?, ?, ?, ?)',
             [
-                ('Vex', 'Líder Supremo', 'Estratégia e comando de ofensiva', 'S+', 'ativo'),
-                ('Nyra', 'Coordenadora', 'Organização e comunicação interna', 'A+', 'ativo'),
-                ('Kane', 'Invasor', 'Pressão agressiva e suporte móvel', 'A', 'ativo'),
-                ('Rook', 'Tático', 'Planejamento e cobertura de rota', 'A', 'ativo'),
+                ('BlackStriker', 'Administrador e proprietário', 'Planejamento de rotas e leitura do mapa para organizar avanços, controlar posições e manter a comunicação durante as partidas.', 'General de Divisão', 'ativo'),
+                ('BodyStyle', 'Administrador e proprietário', 'Precisão nos confrontos, controle de mira e atenção à cobertura dos companheiros, sempre com jogo limpo e decisões seguras.', 'General de Divisão', 'ativo'),
+                ('Thzinn', 'Administrador e proprietário', 'Adaptação rápida às estratégias adversárias, análise dos rounds e apoio tático para transformar cada partida em evolução coletiva.', 'General de Divisão', 'ativo'),
             ],
         )
 
@@ -344,7 +374,22 @@ def home():
     db = get_db()
     total_membros = db.execute('SELECT COUNT(*) FROM members').fetchone()[0]
     total_eventos = db.execute('SELECT COUNT(*) FROM events').fetchone()[0]
-    return render_template('index.html', total_membros=total_membros, total_eventos=total_eventos)
+    total_ativos = db.execute("SELECT COUNT(*) FROM members WHERE status = 'ativo'").fetchone()[0]
+    return render_template(
+        'index.html',
+        total_membros=total_membros,
+        total_eventos=total_eventos,
+        total_ativos=total_ativos,
+    )
+
+
+@app.route('/healthz')
+def healthz():
+    try:
+        get_db().execute('SELECT 1').fetchone()
+    except sqlite3.Error:
+        return jsonify(status='error'), 503
+    return jsonify(status='ok'), 200
 
 
 @app.route('/membros')
@@ -365,22 +410,28 @@ def eventos():
 def noticias():
     lista_noticias = [
         {
-            'data': '02 Out 2026',
-            'titulo': 'Treino focado em rota e timing',
-            'texto': 'A equipe revisou posições, cobertura e entrada em mapas com maior velocidade e organização coletiva.',
-            'imagem': 'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=900&q=80'
+            'data': '30 set 2026',
+            'titulo': 'Notas de atualização: 30/09',
+            'texto': 'A atualização oficial reúne eventos ativos, conteúdos da loja e novidades da temporada. Consulte os períodos e detalhes no anúncio.',
+            'imagem': url_for('static', filename='images/news/pointblank-gameplay.jpg'),
+            'alt': 'Captura de gameplay de Point Blank em confronto num mapa urbano.',
+            'fonte': 'https://pointblank.zepetto.com/br/news/view?idx=366&page=1',
         },
         {
-            'data': '09 Out 2026',
-            'titulo': 'Competição interna com rodada intensa',
-            'texto': 'As partidas foram disputadas com foco em pressão, comunicação e decisões rápidas no meio do confronto.',
-            'imagem': 'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=900&q=80'
+            'data': '30 set 2026',
+            'titulo': 'PBNC 2026: semifinal presencial',
+            'texto': 'Quatro equipes avançaram para as semifinais presenciais do Point Blank National Championship, marcadas para 24 de outubro em São Paulo.',
+            'imagem': url_for('static', filename='images/news/pointblank-esports-arena.jpg'),
+            'alt': 'Arena lotada durante uma competição oficial de Point Blank.',
+            'fonte': 'https://pointblank.zepetto.com/br/news/view?idx=365&page=1',
         },
         {
-            'data': '16 Out 2026',
-            'titulo': 'Reunião estratégica para a próxima fase',
-            'texto': 'O grupo avaliou desempenho, ajustou formações e definiu metas para evoluir em conjunto.',
-            'imagem': 'https://images.unsplash.com/photo-1526379095098-d400fd0bf935?auto=format&fit=crop&w=900&q=80'
+            'data': '17 set 2026',
+            'titulo': 'Ranked Match: Temporada 5',
+            'texto': 'A temporada competitiva usa o modo e-sports, com partidas decididas em até 16 rounds e pontuação por desempenho individual.',
+            'imagem': url_for('static', filename='images/news/pointblank-rank-interface.jpg'),
+            'alt': 'Interface de Point Blank com soldado e árvore de títulos da conta.',
+            'fonte': 'https://pointblank.zepetto.com/br/news/view?idx=363&page=1',
         },
     ]
     return render_template('noticias.html', noticias=lista_noticias)
@@ -535,11 +586,21 @@ def cadastro():
     if request.method == 'POST':
         username = request.form.get('username', '').strip()
         email = request.form.get('email', '').strip()
-        password = request.form.get('password', '').strip()
+        password = request.form.get('password', '')
         nome = request.form.get('nome', '').strip()
 
         if not all([username, email, password, nome]):
             mensagem = 'Preencha todos os campos do cadastro.'
+            tipo = 'error'
+        elif (
+            len(nome) > 120
+            or len(username) > 80
+            or len(email) > 254
+            or len(password) < 12
+            or len(password) > 128
+            or not re.fullmatch(r'[^\s@]+@[^\s@]+\.[^\s@]+', email)
+        ):
+            mensagem = 'Use um e-mail válido, uma senha de 12 a 128 caracteres e limites compatíveis nos demais campos.'
             tipo = 'error'
         else:
             db = get_db()
@@ -565,15 +626,18 @@ def login():
 
     if request.method == 'POST':
         username = request.form.get('username', '').strip()
-        password = request.form.get('password', '').strip()
+        password = request.form.get('password', '')
 
         db = get_db()
-        usuario = db.execute('SELECT * FROM users WHERE username = ?', (username,)).fetchone()
+        usuario = None
+        if username and len(username) <= 80 and len(password) <= 128:
+            usuario = db.execute('SELECT * FROM users WHERE username = ?', (username,)).fetchone()
 
         if usuario and check_password_hash(usuario['password_hash'], password):
             if usuario['role'] != 'admin':
                 erro = 'Sua conta não tem acesso ao painel administrativo.'
                 return render_template('login.html', erro=erro), 403
+            session.clear()
             session['logged_in'] = True
             session['role'] = usuario['role']
             session['username'] = usuario['username']
@@ -616,7 +680,7 @@ def painel():
         'banidos': total_banidos,
     }
 
-    csrf_token = session.setdefault('newsletter_csrf_token', secrets.token_urlsafe(32))
+    csrf_token = get_csrf_token()
     return render_template('painel.html', membros_cla=membros_db, inscricoes=inscricoes, banimentos=banimentos, stats=stats, csrf_token=csrf_token)
 
 
@@ -626,7 +690,7 @@ def painel_newsletter_enviar():
         return redirect(url_for('login'))
     if not hmac.compare_digest(
         request.form.get('csrf_token', ''),
-        session.get('newsletter_csrf_token', ''),
+        session.get('_csrf_token', ''),
     ):
         return 'Solicitação inválida. Recarregue o painel e tente novamente.', 400
 
