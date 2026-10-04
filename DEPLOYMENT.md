@@ -10,7 +10,7 @@ O repositório local já está inicializado na branch `main`. Revise os arquivos
 # Execute estes comandos dentro da pasta BlackWovesSite.
 git add -A
 git commit -m "Prepare Blackwolves site for production"
-git remote add origin https://github.com/SEU_USUARIO/SEU_REPOSITORIO.git
+git remote add origin https://github.com/Matuzael1/Cl-.git
 git push -u origin main
 ```
 
@@ -23,8 +23,8 @@ Use Ubuntu 22.04 ou 24.04 com SSH e acesso sudo. Crie registros DNS `A` para `bl
 Depois que o repositório estiver público no GitHub e o DNS estiver propagado, rode no VPS:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/SEU_USUARIO/SEU_REPOSITORIO/main/scripts/bootstrap_ubuntu.sh -o /tmp/blackwolves-bootstrap.sh
-sudo bash /tmp/blackwolves-bootstrap.sh https://github.com/SEU_USUARIO/SEU_REPOSITORIO.git
+curl -fsSL hhttps://github.com/Matuzael1/Cl-/main/scripts/bootstrap_ubuntu.sh -o /tmp/blackwolves-bootstrap.sh
+sudo bash /tmp/blackwolves-bootstrap.sh https://github.com/Matuzael1/Cl-.git
 ```
 
 O script instala Python, Git, Nginx e Certbot; clona a branch `main`; cria o usuário do serviço e o usuário `deploy`; prepara o ambiente virtual; gera `SECRET_KEY` e `NEWSLETTER_FERNET_KEY`; configura `.env` com permissão `600`; coloca o banco em `/home/blackwolves/data/blackwolves.db`; instala systemd e Nginx; e solicita o certificado HTTPS.
