@@ -302,6 +302,13 @@ def test_social_owner_links_member_and_member_posts_comments_and_media(client):
     assert 'Primeira publicação de teste.' in feed
     assert 'Ótima partida!' in feed
 
+    public_client = application.app.test_client()
+    public_feed = public_client.get('/social')
+    assert public_feed.status_code == 200
+    assert 'Primeira publicação de teste.' in public_feed.get_data(as_text=True)
+    assert 'Ótima partida!' in public_feed.get_data(as_text=True)
+    assert public_client.get(f'/social-media/{post["media_filename"]}').status_code == 200
+
 
 def test_social_unlinked_user_cannot_publish_and_member_cannot_remove_others_post(client):
     with application.app.app_context():
