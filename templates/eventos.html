@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eventos | Blackwolves</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script defer src="{{ url_for('static', filename='navigation.js') }}"></script>
+</head>
+<body>
+    <header class="topbar">
+        <div class="container nav">
+            <div class="brand">
+                <span class="brand-mark">BW</span>
+                <span>Blackwolves</span>
+            </div>
+            <nav>
+                <a href="/">Início</a>
+                <a href="/membros">Membros</a>
+                <a href="/eventos">Eventos</a>
+                <a href="/noticias">Notícias</a>
+                <a href="/galeria">Galeria</a>
+                <a href="/novidades">Novidades</a>
+                <a href="/recrutamento">Recrutamento</a>
+                <a href="/painel">Painel</a>
+                <a href="/login">Login</a>
+                <a href="https://www.instagram.com/black.wolves.pb?stkn=MWNuY2c4ZW1tanUwMw==" target="_blank" rel="noopener noreferrer">Instagram</a>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <section class="page-hero">
+            <div class="container">
+                <div>
+                    <p class="tag">BLACKWOLVES</p>
+                    <h1>Eventos do clã</h1>
+                    <p>Agenda de treinamentos, competições e encontros estratégicos da equipe.</p>
+                </div>
+                <div class="page-badge">BW</div>
+            </div>
+        </section>
+
+        <section class="page-section">
+            <div class="container">
+                <div class="section-title compact-title">
+                    <p class="tag">Agenda</p>
+                    <h2>Eventos do clã</h2>
+                </div>
+                <div class="news-grid">
+                    {% for evento in eventos %}
+                    <article class="news-card event-highlight-card">
+                        <div class="news-content">
+                            <span class="date">{{ evento.data }}</span>
+                            <h3>{{ evento.titulo }}</h3>
+                            <p>{{ evento.descricao }}</p>
+                        </div>
+                    </article>
+                    {% else %}
+                    <p class="empty-state">Nenhum evento publicado no momento. Volte em breve para conferir a agenda do clã.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="container footer-content">
+            <div>
+                <h3>Blackwolves</h3>
+                <p>Clã de PointBlank: disciplina, foco e vitória.</p>
+            </div>
+            <a href="mailto:black.wolves.gm@gmail.com">black.wolves.gm@gmail.com</a>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Membros | Blackwolves</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script defer src="{{ url_for('static', filename='navigation.js') }}"></script>
+</head>
+<body>
+    <header class="topbar">
+        <div class="container nav">
+            <div class="brand">
+                <span class="brand-mark">BW</span>
+                <span>Blackwolves</span>
+            </div>
+            <nav>
+                <a href="/">Início</a>
+                <a href="/membros">Membros</a>
+                <a href="/noticias">Notícias</a>
+                <a href="/galeria">Galeria</a>
+                <a href="/novidades">Novidades</a>
+                <a href="/eventos">Eventos</a>
+                <a href="/recrutamento">Recrutamento</a>
+                <a href="/painel">Painel</a>
+                <a href="/login">Login</a>
+                <a href="https://www.instagram.com/black.wolves.pb?stkn=MWNuY2c4ZW1tanUwMw==" target="_blank" rel="noopener noreferrer">Instagram</a>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <section class="page-hero">
+            <div class="container">
+                <div>
+                    <p class="tag">BLACKWOLVES</p>
+                    <h1>Membros do clã</h1>
+                    <p>Uma equipe focada em disciplina, comunicação e ação coordenada nas partidas mais importantes.</p>
+                </div>
+                <div class="page-badge">BW</div>
+            </div>
+        </section>
+
+        <section class="page-section">
+            <div class="container">
+                <div class="section-title compact-title">
+                    <p class="tag">Equipe</p>
+                    <h2>Roster Blackwolves</h2>
+                </div>
+                <div class="member-grid">
+                    {% for membro in membros_cla %}
+                    <article class="member-card">
+                        <div class="member-header">
+                            <div>
+                                <div class="member-role">{{ membro.cargo }}</div>
+                                <div class="member-name">{{ membro.nome }}</div>
+                            </div>
+                        </div>
+                        <div class="member-rank">
+                            <img
+                                class="member-rank-image"
+                                src="{{ url_for('static', filename='images/pointblank-general-de-divisao.svg') }}"
+                                alt="Insígnia de General de Divisão de Point Blank com duas estrelas"
+                                width="64"
+                                height="64"
+                                loading="lazy"
+                            >
+                            <div class="member-rank-copy">
+                                <span class="member-rank-label">Patente</span>
+                                <span class="member-level">{{ membro.nivel }}</span>
+                            </div>
+                        </div>
+                        <p>{{ membro.funcao }}</p>
+                    </article>
+                    {% endfor %}
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer id="contato" class="footer">
+        <div class="container footer-content">
+            <div>
+                <h3>Blackwolves</h3>
+                <p>Clã de PointBlank: disciplina, foco e vitória.</p>
+            </div>
+            <a href="mailto:black.wolves.gm@gmail.com">black.wolves.gm@gmail.com</a>
+        </div>
+    </footer>
+</body>
+</html>

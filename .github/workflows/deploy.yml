@@ -1,0 +1,86 @@
+name: Test and deploy Blackwolves
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+
+      - name: Install test dependencies
+        run: python -m pip install -r requirements-dev.txt
+
+      - name: Run tests
+        run: python -m pytest -q
+
+  deploy-readiness:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    outputs:
+      enabled: ${{ steps.check.outputs.enabled }}
+    steps:
+      - name: Check deployment secrets
+        id: check
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SERVER_KNOWN_HOSTS: ${{ secrets.SERVER_KNOWN_HOSTS }}
+          SERVER_USER: ${{ secrets.SERVER_USER }}
+          SERVER_HOST: ${{ secrets.SERVER_HOST }}
+          APP_DIR: ${{ secrets.APP_DIR }}
+        run: |
+          if [[ -n "$SSH_PRIVATE_KEY" && -n "$SERVER_KNOWN_HOSTS" && -n "$SERVER_USER" && -n "$SERVER_HOST" && -n "$APP_DIR" ]]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "Deployment skipped: configure all VPS Actions secrets to enable publishing."
+          fi
+
+  deploy:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.deploy-readiness.outputs.enabled == 'true'
+    needs: [test, deploy-readiness]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up SSH
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SERVER_KNOWN_HOSTS: ${{ secrets.SERVER_KNOWN_HOSTS }}
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          printf '%s\n' "$SERVER_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
+
+      - name: Deploy to VPS
+        env:
+          SERVER_USER: ${{ secrets.SERVER_USER }}
+          SERVER_HOST: ${{ secrets.SERVER_HOST }}
+          APP_DIR: ${{ secrets.APP_DIR }}
+        run: |
+          ssh -o BatchMode=yes -o IdentitiesOnly=yes -i ~/.ssh/id_ed25519 "$SERVER_USER@$SERVER_HOST" bash -s -- "$APP_DIR" <<'REMOTE'
+          set -euo pipefail
+          app_dir="$1"
+          sudo -n -u blackwolves /usr/bin/git -C "$app_dir" pull --ff-only origin main
+          sudo -n -u blackwolves "$app_dir/.venv/bin/pip" install -r "$app_dir/requirements.txt"
+          sudo -n /usr/bin/systemctl restart blackwolves
+          REMOTE
+
+      - name: Verify production health
+        run: curl --fail --retry 5 --retry-delay 3 https://blackwolves.com.br/healthz

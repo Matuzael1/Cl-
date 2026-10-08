@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recrutamento | Blackwolves</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script defer src="{{ url_for('static', filename='navigation.js') }}"></script>
+</head>
+<body>
+    <header class="topbar">
+        <div class="container nav">
+            <div class="brand">
+                <span class="brand-mark">BW</span>
+                <span>Blackwolves</span>
+            </div>
+            <nav>
+                <a href="/">Início</a>
+                <a href="/membros">Membros</a>
+                <a href="/noticias">Notícias</a>
+                <a href="/galeria">Galeria</a>
+                <a href="/novidades">Novidades</a>
+                <a href="/eventos">Eventos</a>
+                <a href="/recrutamento">Recrutamento</a>
+                <a href="/painel">Painel</a>
+                <a href="/login">Login</a>
+                <a href="https://www.instagram.com/black.wolves.pb?stkn=MWNuY2c4ZW1tanUwMw==" target="_blank" rel="noopener noreferrer">Instagram</a>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <section class="page-hero">
+            <div class="container">
+                <div>
+                    <p class="tag">RECRUTAMENTO</p>
+                    <h1>Entrar no Blackwolves</h1>
+                    <p>Se você busca um clã com objetivo, disciplina e espírito de equipe, preencha o formulário abaixo.</p>
+                </div>
+                <div class="page-badge">BW</div>
+            </div>
+        </section>
+
+        <section class="page-section">
+            <div class="container recruit-shell">
+                <aside class="requirements">
+                    <h3>O que buscamos</h3>
+                    <ul>
+                        <li>Boa comunicação e postura em equipe</li>
+                        <li>Foco em aprendizado e evolução</li>
+                        <li>Compromisso com treinos e partidas</li>
+                        <li>Respeito à hierarquia e aos colegas</li>
+                        <li>Desejo de competir com seriedade</li>
+                    </ul>
+                </aside>
+
+                <div class="form-panel">
+                    <h3>Formulário de inscrição</h3>
+                    <p class="privacy-notice">Os dados são cifrados neste dispositivo. O site e o e-mail recebem apenas uma notificação sem seus dados pessoais.</p>
+                    <form id="recruitment-form" method="POST" data-public-key="{{ url_for('static', filename='recruitment-public.pem') }}">
+                        <div class="form-grid">
+                            <div class="form-field">
+                                <label for="nome">Nome</label>
+                                <input id="nome" type="text" placeholder="Seu nome ou apelido" required>
+                            </div>
+
+                            <div class="form-field">
+                                <label for="nick">Nick no jogo</label>
+                                <input id="nick" type="text" placeholder="Seu nick" required>
+                            </div>
+
+                            <div class="form-field">
+                                <label for="idade">Idade</label>
+                                <input id="idade" type="number" min="12" placeholder="Ex: 22">
+                            </div>
+
+                            <div class="form-field">
+                                <label for="email">E-mail</label>
+                                <input id="email" type="email" placeholder="seuemail@exemplo.com" required>
+                            </div>
+
+                            <div class="form-field">
+                                <label for="role">Função preferida</label>
+                                <select id="role">
+                                    <option value="fragger">Fragger</option>
+                                    <option value="support">Support</option>
+                                    <option value="entry">Entry</option>
+                                    <option value="rifler">Rifler</option>
+                                    <option value="flex">Flex</option>
+                                </select>
+                            </div>
+
+                            <div class="form-field full">
+                                <label for="experiencia">Experiência</label>
+                                <textarea id="experiencia" placeholder="Conte um pouco sobre sua experiência no PointBlank e o que você espera do clã."></textarea>
+                            </div>
+
+                            <div class="form-field full">
+                                <label for="discord">Discord</label>
+                                <input id="discord" type="text" placeholder="Seu usuário do Discord">
+                            </div>
+                        </div>
+
+                        <label class="checkbox">
+                            <input id="aceite" type="checkbox" required>
+                            Concordo com as regras e com o processo de recrutamento do clã.
+                        </label>
+
+                        <button type="submit" class="btn primary submit-btn">Enviar inscrição</button>
+                        <div id="recruitment-status" class="success-box" role="status" aria-live="polite" hidden></div>
+                    </form>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer id="contato" class="footer">
+        <div class="container footer-content">
+            <div>
+                <h3>Blackwolves</h3>
+                <p>Clã de PointBlank: disciplina, foco e vitória.</p>
+            </div>
+            <a href="mailto:black.wolves.gm@gmail.com">black.wolves.gm@gmail.com</a>
+        </div>
+    </footer>
+    <script src="{{ url_for('static', filename='recruitment-e2ee.js') }}" defer></script>
+</body>
+</html>

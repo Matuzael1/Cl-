@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Galeria | Blackwolves</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script defer src="{{ url_for('static', filename='navigation.js') }}"></script>
+</head>
+<body>
+    <header class="topbar">
+        <div class="container nav">
+            <div class="brand">
+                <span class="brand-mark">BW</span>
+                <span>Blackwolves</span>
+            </div>
+            <nav>
+                <a href="/">Início</a>
+                <a href="/membros">Membros</a>
+                <a href="/noticias">Notícias</a>
+                <a href="/galeria">Galeria</a>
+                <a href="/novidades">Novidades</a>
+                <a href="/recrutamento">Recrutamento</a>
+                <a href="/painel">Painel</a>
+                <a href="/login">Login</a>
+                <a href="https://www.instagram.com/black.wolves.pb?stkn=MWNuY2c4ZW1tanUwMw==" target="_blank" rel="noopener noreferrer">Instagram</a>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <section class="page-hero">
+            <div class="container">
+                <div>
+                    <p class="tag">BLACKWOLVES</p>
+                    <h1>Galeria do clã</h1>
+                    <p>Momentos, treinos e partidas marcantes da jornada do Blackwolves.</p>
+                </div>
+                <div class="page-badge">BW</div>
+            </div>
+        </section>
+
+        <section class="page-section">
+            <div class="container">
+                <div class="section-title compact-title">
+                    <p class="tag">Galeria</p>
+                    <h2>Momentos do clã</h2>
+                </div>
+                <div class="gallery-grid">
+                    {% for imagem in imagens %}
+                    <article class="gallery-card">
+                        <div class="gallery-image" style="background-image: url('{{ imagem }}');"></div>
+                        <span class="label">Blackwolves</span>
+                        <h3>Momento do clã</h3>
+                    </article>
+                    {% endfor %}
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="container footer-content">
+            <div>
+                <h3>Blackwolves</h3>
+                <p>Clã de PointBlank: disciplina, foco e vitória.</p>
+            </div>
+            <a href="mailto:black.wolves.gm@gmail.com">black.wolves.gm@gmail.com</a>
+        </div>
+    </footer>
+</body>
+</html>

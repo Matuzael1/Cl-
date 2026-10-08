@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel | Blackwolves</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script defer src="{{ url_for('static', filename='navigation.js') }}"></script>
+</head>
+<body>
+    <header class="topbar">
+        <div class="container nav">
+            <div class="brand">
+                <span class="brand-mark">BW</span>
+                <span>Blackwolves</span>
+            </div>
+            <nav>
+                <a href="/">Início</a>
+                <a href="/membros">Membros</a>
+                <a href="/noticias">Notícias</a>
+                <a href="/galeria">Galeria</a>
+                <a href="/novidades">Novidades</a>
+                <a href="/eventos">Eventos</a>
+                <a href="/recrutamento">Recrutamento</a>
+                <a href="/painel">Painel</a>
+                <form method="POST" action="{{ url_for('logout') }}" class="nav-logout-form">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                    <button type="submit" class="nav-logout-button">Sair</button>
+                </form>
+                <a href="https://www.instagram.com/black.wolves.pb?stkn=MWNuY2c4ZW1tanUwMw==" target="_blank" rel="noopener noreferrer">Instagram</a>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <section class="page-hero">
+            <div class="container">
+                <div>
+                    <p class="tag">PAINEL DO CLÃ</p>
+                    <h1>Dashboard Blackwolves</h1>
+                    <p>Resumo da operação, desempenho e organização do clã.</p>
+                </div>
+                <div class="page-badge">BW</div>
+            </div>
+        </section>
+
+        <section class="page-section">
+            <div class="container">
+                <div class="dashboard-grid">
+                    <article class="stat-card">
+                        <span class="stat-number">{{ stats.membros }}</span>
+                        <p>Membros</p>
+                    </article>
+                    <article class="stat-card">
+                        <span class="stat-number">{{ stats.inscricoes }}</span>
+                        <p>Inscrições cifradas</p>
+                    </article>
+                    <article class="stat-card">
+                        <span class="stat-number">{{ stats.ativos }}</span>
+                        <p>Ativos hoje</p>
+                    </article>
+                    <article class="stat-card">
+                        <span class="stat-number">{{ stats.assinantes }}</span>
+                        <p>Assinantes confirmados</p>
+                    </article>
+                    <article class="stat-card">
+                        <span class="stat-number">{{ stats.banidos }}</span>
+                        <p>Banidos registrados</p>
+                    </article>
+                </div>
+
+                <section class="member-admin" aria-labelledby="member-admin-title">
+                    <div class="section-title compact-title">
+                        <p class="tag">Administração do clã</p>
+                        <h2 id="member-admin-title">Gerenciar membros</h2>
+                    </div>
+                    <form method="POST" action="{{ url_for('painel_adicionar') }}" class="member-create-form">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                        <div class="member-admin-fields">
+                            <div class="form-field">
+                                <label for="new-member-name">Nick</label>
+                                <input id="new-member-name" name="nome" maxlength="80" required>
+                            </div>
+                            <div class="form-field">
+                                <label for="new-member-role">Cargo</label>
+                                <input id="new-member-role" name="cargo" maxlength="80" required>
+                            </div>
+                            <div class="form-field">
+                                <label for="new-member-rank">Patente</label>
+                                <input id="new-member-rank" name="nivel" maxlength="60" required>
+                            </div>
+                            <div class="form-field">
+                                <label for="new-member-status">Status</label>
+                                <select id="new-member-status" name="status">
+                                    <option value="ativo">Ativo</option>
+                                    <option value="inativo">Inativo</option>
+                                </select>
+                            </div>
+                            <div class="form-field member-admin-wide">
+                                <label for="new-member-function">Descrição</label>
+                                <textarea id="new-member-function" name="funcao" maxlength="500" required></textarea>
+                            </div>
+                        </div>
+                        <button class="btn primary" type="submit">Adicionar membro</button>
+                    </form>
+
+                    <div class="member-grid">
+                    {% for membro in membros_cla %}
+                    <article class="panel-card">
+                        <div class="member-header">
+                            <div>
+                                <div class="member-role">{{ membro.cargo }}</div>
+                                <div class="member-name">{{ membro.nome }}</div>
+                            </div>
+                            <span class="member-level">{{ membro.nivel }}</span>
+                        </div>
+                        <p>{{ membro.funcao }}</p>
+                        <details class="member-edit-details">
+                            <summary>Editar {{ membro.nome }}</summary>
+                            <form method="POST" action="{{ url_for('painel_atualizar', member_id=membro.id) }}" class="member-edit-form">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                                <div class="member-admin-fields">
+                                    <div class="form-field">
+                                        <label for="member-name-{{ membro.id }}">Nick</label>
+                                        <input id="member-name-{{ membro.id }}" name="nome" value="{{ membro.nome }}" maxlength="80" required>
+                                    </div>
+                                    <div class="form-field">
+                                        <label for="member-role-{{ membro.id }}">Cargo</label>
+                                        <input id="member-role-{{ membro.id }}" name="cargo" value="{{ membro.cargo }}" maxlength="80" required>
+                                    </div>
+                                    <div class="form-field">
+                                        <label for="member-rank-{{ membro.id }}">Patente</label>
+                                        <input id="member-rank-{{ membro.id }}" name="nivel" value="{{ membro.nivel }}" maxlength="60" required>
+                                    </div>
+                                    <div class="form-field">
+                                        <label for="member-status-{{ membro.id }}">Status</label>
+                                        <select id="member-status-{{ membro.id }}" name="status">
+                                            <option value="ativo" {% if membro.status == 'ativo' %}selected{% endif %}>Ativo</option>
+                                            <option value="inativo" {% if membro.status != 'ativo' %}selected{% endif %}>Inativo</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-field member-admin-wide">
+                                        <label for="member-function-{{ membro.id }}">Descrição</label>
+                                        <textarea id="member-function-{{ membro.id }}" name="funcao" maxlength="500" required>{{ membro.funcao }}</textarea>
+                                    </div>
+                                </div>
+                                <div class="member-edit-actions">
+                                    <button class="btn primary" type="submit">Salvar alterações</button>
+                                </div>
+                            </form>
+                            <form method="POST" action="{{ url_for('painel_remover', member_id=membro.id) }}" class="member-remove-form">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                                <button class="btn secondary" type="submit">Remover membro</button>
+                            </form>
+                        </details>
+                    </article>
+                    {% endfor %}
+                    </div>
+                </section>
+
+                <section class="events-admin" aria-labelledby="events-admin-title">
+                    <div class="section-title compact-title">
+                        <p class="tag">Agenda</p>
+                        <h2 id="events-admin-title">Gerenciar eventos</h2>
+                    </div>
+                    <form method="POST" action="{{ url_for('painel_evento_adicionar') }}" class="event-create-form">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                        <div class="member-admin-fields">
+                            <div class="form-field">
+                                <label for="new-event-title">Título</label>
+                                <input id="new-event-title" name="titulo" maxlength="120" required>
+                            </div>
+                            <div class="form-field">
+                                <label for="new-event-date">Data ou status</label>
+                                <input id="new-event-date" name="data" maxlength="40" placeholder="Ex: 25 out 2026 ou A definir" required>
+                            </div>
+                            <div class="form-field member-admin-wide">
+                                <label for="new-event-description">Descrição</label>
+                                <textarea id="new-event-description" name="descricao" maxlength="1000" required></textarea>
+                            </div>
+                        </div>
+                        <button class="btn primary" type="submit">Adicionar evento</button>
+                    </form>
+
+                    <div class="event-admin-list">
+                        {% for evento in eventos %}
+                        <article class="event-admin-card">
+                            <form method="POST" action="{{ url_for('painel_evento_atualizar', event_id=evento.id) }}">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                                <div class="member-admin-fields">
+                                    <div class="form-field">
+                                        <label for="event-title-{{ evento.id }}">Título</label>
+                                        <input id="event-title-{{ evento.id }}" name="titulo" value="{{ evento.titulo }}" maxlength="120" required>
+                                    </div>
+                                    <div class="form-field">
+                                        <label for="event-date-{{ evento.id }}">Data ou status</label>
+                                        <input id="event-date-{{ evento.id }}" name="data" value="{{ evento.data }}" maxlength="40" required>
+                                    </div>
+                                    <div class="form-field member-admin-wide">
+                                        <label for="event-description-{{ evento.id }}">Descrição</label>
+                                        <textarea id="event-description-{{ evento.id }}" name="descricao" maxlength="1000" required>{{ evento.descricao }}</textarea>
+                                    </div>
+                                </div>
+                                <button class="btn primary" type="submit">Salvar evento</button>
+                            </form>
+                            <form method="POST" action="{{ url_for('painel_evento_remover', event_id=evento.id) }}" class="event-remove-form">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                                <button class="btn secondary" type="submit">Remover evento</button>
+                            </form>
+                        </article>
+                        {% else %}
+                        <p class="empty-state">Ainda não há eventos na agenda.</p>
+                        {% endfor %}
+                    </div>
+                </section>
+
+                <section class="encrypted-applications" aria-labelledby="applications-title">
+                    <h2 id="applications-title">Inscrições cifradas</h2>
+                    <p>A chave privada é lida somente neste navegador e nunca é enviada ao site.</p>
+                    <div class="private-key-control">
+                        <label for="private-key-file">Chave privada local (.pem)</label>
+                        <input id="private-key-file" type="file" accept=".pem,application/x-pem-file">
+                    </div>
+                    <div id="decryption-status" class="privacy-notice" role="status" aria-live="polite"></div>
+                    <div id="encrypted-application-list" class="application-list">
+                        {% for inscricao in inscricoes %}
+                        <article class="application-record" data-record-id="{{ inscricao.id }}" data-encrypted-payload="{{ inscricao.encrypted_payload }}">
+                            <h3>Inscrição #{{ inscricao.id }}</h3>
+                            <time>{{ inscricao.created_at }}</time>
+                            <pre hidden></pre>
+                        </article>
+                        {% else %}
+                        <p>Nenhuma inscrição recebida.</p>
+                        {% endfor %}
+                    </div>
+                </section>
+
+                <section class="newsletter-admin" aria-labelledby="newsletter-admin-title">
+                    <h2 id="newsletter-admin-title">Enviar novidades</h2>
+                    <p>O e-mail será enviado individualmente aos assinantes confirmados.</p>
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% for category, message in messages %}
+                        <div class="privacy-notice" role="status">{{ message }}</div>
+                        {% endfor %}
+                    {% endwith %}
+                    <form method="POST" action="{{ url_for('painel_newsletter_enviar') }}" class="newsletter-admin-form">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                        <div class="form-field">
+                            <label for="newsletter-subject">Assunto</label>
+                            <input id="newsletter-subject" name="subject" type="text" maxlength="120" placeholder="Treino de sábado" required>
+                        </div>
+                        <div class="form-field">
+                            <label for="newsletter-message">Mensagem</label>
+                            <textarea id="newsletter-message" name="message" maxlength="8000" placeholder="Informe data, horário, modalidade ou novidade do clã." required></textarea>
+                        </div>
+                        <button class="btn primary" type="submit">Enviar aos assinantes</button>
+                    </form>
+                </section>
+
+                <section class="ban-list-admin" aria-labelledby="ban-list-admin-title">
+                    <h2 id="ban-list-admin-title">Lista de banimento</h2>
+                    <p>Adicione jogadores proibidos por uso de hack, macro, scripts ou comportamento incompatível com o cenário do jogo.</p>
+                    <form method="POST" action="{{ url_for('painel_banir') }}" class="newsletter-admin-form">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                        <div class="form-field">
+                            <label for="ban-nick">Nick</label>
+                            <input id="ban-nick" name="nick" type="text" maxlength="60" placeholder="Nick proibido" required>
+                        </div>
+                        <div class="form-field">
+                            <label for="ban-motivo">Motivo</label>
+                            <textarea id="ban-motivo" name="motivo" maxlength="500" placeholder="Ex: uso de macro, hack, script proibido no cenário do jogo." required></textarea>
+                        </div>
+                        <button class="btn primary" type="submit">Adicionar ao banimento</button>
+                    </form>
+
+                    <div class="ban-list-admin-items">
+                        {% for item in banimentos %}
+                        <article class="ban-list-item">
+                            <div>
+                                <span class="ban-label">Nick</span>
+                                <h3>{{ item.nick }}</h3>
+                            </div>
+                            <p>{{ item.motivo }}</p>
+                            <form method="POST" action="{{ url_for('painel_remover_banimento', ban_id=item.id) }}">
+                                <button class="btn secondary" type="submit">Remover</button>
+                            </form>
+                        </article>
+                        {% else %}
+                        <p class="empty-state">Nenhum jogador registrado ainda.</p>
+                        {% endfor %}
+                    </div>
+                </section>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="container footer-content">
+            <div>
+                <h3>Blackwolves</h3>
+                <p>Clã de PointBlank: disciplina, foco e vitória.</p>
+            </div>
+            <a href="mailto:black.wolves.gm@gmail.com">black.wolves.gm@gmail.com</a>
+        </div>
+    </footer>
+    <script src="{{ url_for('static', filename='panel-e2ee.js') }}" defer></script>
+</body>
+</html>

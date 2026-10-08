@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Novidades | Blackwolves</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <main class="newsletter-result-shell">
+        <section class="form-panel newsletter-result">
+            <p class="tag">BLACKWOLVES</p>
+            <h1>Preferências de e-mail</h1>
+            <p>{{ message }}</p>
+            <a class="btn primary" href="{{ url_for('home') }}">Voltar ao site</a>
+        </section>
+    </main>
+</body>
+</html>

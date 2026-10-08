@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro | Blackwolves</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script defer src="{{ url_for('static', filename='navigation.js') }}"></script>
+</head>
+<body>
+    <header class="topbar">
+        <div class="container nav">
+            <div class="brand">
+                <span class="brand-mark">BW</span>
+                <span>Blackwolves</span>
+            </div>
+            <nav>
+                <a href="/">Início</a>
+                <a href="/membros">Membros</a>
+                <a href="/eventos">Eventos</a>
+                <a href="/noticias">Notícias</a>
+                <a href="/galeria">Galeria</a>
+                <a href="/novidades">Novidades</a>
+                <a href="/recrutamento">Recrutamento</a>
+                <a href="/cadastro">Cadastro</a>
+                <a href="/login">Login</a>
+                <a href="https://www.instagram.com/black.wolves.pb?stkn=MWNuY2c4ZW1tanUwMw==" target="_blank" rel="noopener noreferrer">Instagram</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="auth-shell">
+        <div class="auth-box">
+            <p class="tag">CADASTRO</p>
+            <h2>Crie sua conta</h2>
+            <p>Faça parte do Blackwolves e acompanhe o clã em eventos, notícias e gestão interna.</p>
+
+            {% if mensagem %}
+                <div class="{% if tipo == 'success' %}success-box{% else %}error-box{% endif %}">
+                    {{ mensagem }}
+                </div>
+            {% endif %}
+
+            <form method="POST" class="auth-form">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <div class="form-field">
+                    <label for="nome">Nome completo</label>
+                    <input type="text" id="nome" name="nome" maxlength="120" placeholder="Seu nome completo" required>
+                </div>
+                <div class="form-field">
+                    <label for="username">Nome de usuário</label>
+                    <input type="text" id="username" name="username" maxlength="80" placeholder="username" required>
+                </div>
+                <div class="form-field">
+                    <label for="email">E-mail</label>
+                    <input type="email" id="email" name="email" maxlength="254" placeholder="seu@email.com" required>
+                </div>
+                <div class="form-field">
+                    <label for="password">Senha</label>
+                    <input type="password" id="password" name="password" minlength="12" maxlength="128" placeholder="Crie uma senha" required>
+                </div>
+
+                <button type="submit" class="btn primary submit-btn">Cadastrar</button>
+            </form>
+
+            <div class="auth-actions">
+                <span>Já tem conta?</span>
+                <a href="/login" class="text-link">Ir para login</a>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container footer-content">
+            <div>
+                <h3>Blackwolves</h3>
+                <p>Clã de PointBlank: disciplina, foco e vitória.</p>
+            </div>
+            <a href="mailto:black.wolves.gm@gmail.com">black.wolves.gm@gmail.com</a>
+        </div>
+    </footer>
+</body>
+</html>

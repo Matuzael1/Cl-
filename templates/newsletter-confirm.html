@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confirmar inscrição | Blackwolves</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <main class="newsletter-result-shell">
+        <section class="form-panel newsletter-result">
+            <p class="tag">BLACKWOLVES</p>
+            <h1>Confirmar novidades</h1>
+            <p>Confirme que deseja receber avisos de recrutamento, treinos, eventos e notícias.</p>
+            <form method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <input type="hidden" name="confirmation_token" value="{{ token }}">
+                <button class="btn primary" type="submit">Confirmar inscrição</button>
+            </form>
+            <a class="text-link" href="{{ url_for('novidades') }}">Voltar ao site</a>
+        </section>
+    </main>
+</body>
+</html>

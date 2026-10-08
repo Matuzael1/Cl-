@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cancelar e-mails | Blackwolves</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <main class="newsletter-result-shell">
+        <section class="form-panel newsletter-result">
+            <p class="tag">PREFERÊNCIAS DE E-MAIL</p>
+            <h1>Cancelar novidades</h1>
+            <p>Você deixará de receber os avisos do Blackwolves por e-mail.</p>
+            <form method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <input type="hidden" name="unsubscribe_token" value="{{ token }}">
+                <button class="btn primary" type="submit">Confirmar descadastro</button>
+            </form>
+            <a class="text-link" href="{{ url_for('home') }}">Voltar ao site</a>
+        </section>
+    </main>
+</body>
+</html>

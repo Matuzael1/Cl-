@@ -1,0 +1,26 @@
+[Unit]
+Description=Blackwolves Flask App
+After=network.target
+
+[Service]
+User=blackwolves
+Group=blackwolves
+WorkingDirectory=/home/blackwolves/BlackwolvesSite
+EnvironmentFile=/home/blackwolves/BlackwolvesSite/.env
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+LockPersonality=true
+ReadWritePaths=/home/blackwolves/data
+ExecStart=/home/blackwolves/BlackwolvesSite/.venv/bin/gunicorn --config /home/blackwolves/BlackwolvesSite/gunicorn.conf.py app:application
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

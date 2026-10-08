@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" fill="none">
+  <defs>
+    <linearGradient id="panel" x1="120" y1="5" x2="120" y2="235" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#75251d"/>
+      <stop offset=".5" stop-color="#4a1514"/>
+      <stop offset="1" stop-color="#321012"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1">
+      <stop stop-color="#ffe05a"/>
+      <stop offset=".3" stop-color="#f4bd20"/>
+      <stop offset=".72" stop-color="#df9415"/>
+      <stop offset="1" stop-color="#a94d12"/>
+    </linearGradient>
+    <filter id="shadow" x="16" y="66" width="209" height="116" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="3"/>
+      <feOffset dy="3"/>
+      <feComponentTransfer><feFuncA slope=".45" type="linear"/></feComponentTransfer>
+      <feBlend in="SourceGraphic"/>
+    </filter>
+    <path id="star" d="m0-47 11 31 34 2-26 21 9 34L0 23l-28 18 9-34-26-21 34-2L0-47Z"/>
+  </defs>
+  <rect x="3" y="3" width="234" height="234" fill="#35100f" stroke="#8e3024" stroke-width="5"/>
+  <rect x="11" y="11" width="218" height="218" fill="url(#panel)" stroke="#b14c32" stroke-width="2"/>
+  <path d="M19 13h28v214H19zM107 13h25v214h-25zM194 13h27v214h-27z" fill="#210c0e" fill-opacity=".2"/>
+  <path d="M13 18h214M13 222h214" stroke="#d47a42" stroke-opacity=".22" stroke-width="2"/>
+  <g fill="url(#gold)" stroke="#a95b17" stroke-width="2" stroke-linejoin="round" filter="url(#shadow)">
+    <use href="#star" x="70" y="119"/>
+    <use href="#star" x="170" y="119"/>
+  </g>
+  <g fill="#fff0a0" fill-opacity=".14">
+    <path d="M70 73 81 103 70 119 59 103Z"/>
+    <path d="M170 73 181 103 170 119 159 103Z"/>
+  </g>
+</svg>
