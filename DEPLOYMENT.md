@@ -24,6 +24,8 @@ Use Ubuntu 22.04 ou 24.04 com SSH e acesso sudo. Crie registros DNS `A` para `bl
 
 Na verificação de 08/10/2026, `blackwolves.com.br` ainda respondia com `404` e cabeçalhos da Cloudflare/Nuvemshop, não do VPS deste projeto. Apontar o DNS para um novo VPS substituirá o site que responde hoje nesse domínio; mantenha os registros de e-mail (`MX`, SPF, DKIM e DMARC) e só altere o `A`/`AAAA` web quando o VPS estiver pronto. Se houver `AAAA` para um IPv6 não configurado, remova-o ou configure-o corretamente.
 
+Os nameservers consultados são `ns1018.hostgator.com.br` e `ns1019.hostgator.com.br`; `www` atualmente aponta para a hospedagem da Nuvemshop. No painel DNS da HostGator, depois de preparar o VPS, substitua os registros web `A` de `@` pelo IPv4 do VPS e troque o `CNAME` de `www` para `blackwolves.com.br` (ou use o mesmo `A` do VPS). Não altere registros `MX`/`TXT` do Gmail.
+
 Depois que o repositório estiver público no GitHub e o DNS estiver propagado, rode no VPS:
 
 ```bash
@@ -40,6 +42,15 @@ O Certbot só consegue emitir o certificado quando DNS e firewall estiverem pron
 ## 3. Ativar deploy automático
 
 Crie uma chave Ed25519 dedicada para o GitHub Actions no computador administrador e instale a chave pública no usuário `deploy` do VPS. Cadastre estes secrets em **GitHub > Settings > Secrets and variables > Actions**:
+
+No Windows, gere um par dedicado no PowerShell (a chave privada não tem frase-senha para permitir o uso não interativo; proteja-a como secret):
+
+```powershell
+ssh-keygen -t ed25519 -C "blackwolves-github-actions" -f "$HOME/.ssh/blackwolves-actions" -N ""
+Get-Content "$HOME/.ssh/blackwolves-actions.pub"
+```
+
+Cole somente a chave `.pub` no prompt do bootstrap do VPS. Cadastre o conteúdo de `blackwolves-actions` (sem `.pub`) como `SSH_PRIVATE_KEY`. Para `SERVER_KNOWN_HOSTS`, confirme a impressão digital do VPS por canal confiável; não confie cegamente em uma saída de `ssh-keyscan`.
 
 - `SSH_PRIVATE_KEY`: chave privada dedicada, nunca a chave pessoal.
 - `SERVER_KNOWN_HOSTS`: fingerprint/linha `known_hosts` do VPS verificada por um canal confiável.
