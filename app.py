@@ -15,7 +15,7 @@ from cryptography.fernet import Fernet, InvalidToken
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
-from dotenv import load_dotenv
+from dotenv import dotenv_values, load_dotenv, set_key
 from flask import Flask, abort, flash, g, jsonify, redirect, render_template, request, session, url_for
 from werkzeug.security import check_password_hash, generate_password_hash
 
@@ -24,22 +24,33 @@ load_dotenv(os.path.join(os.path.dirname(__file__), '.env'))
 
 def ensure_local_dev_defaults():
     values = {}
+    secrets_dir = os.path.join(os.path.dirname(__file__), '.secrets')
+    defaults_path = os.path.join(secrets_dir, 'local-dev.env')
+    saved_values = dotenv_values(defaults_path) if os.path.isfile(defaults_path) else {}
 
     if not os.getenv('SECRET_KEY'):
-        values['SECRET_KEY'] = secrets.token_urlsafe(32)
+        values['SECRET_KEY'] = saved_values.get('SECRET_KEY') or secrets.token_urlsafe(32)
         os.environ['SECRET_KEY'] = values['SECRET_KEY']
 
     if not os.getenv('ADMIN_USERNAME'):
-        values['ADMIN_USERNAME'] = 'blackwolves-admin'
+        values['ADMIN_USERNAME'] = saved_values.get('ADMIN_USERNAME') or 'MatuzaelS'
         os.environ['ADMIN_USERNAME'] = values['ADMIN_USERNAME']
 
     if not os.getenv('ADMIN_PASSWORD'):
-        values['ADMIN_PASSWORD'] = 'Blackwolves@Admin2026!'
+        values['ADMIN_PASSWORD'] = saved_values.get('ADMIN_PASSWORD') or secrets.token_urlsafe(32)
         os.environ['ADMIN_PASSWORD'] = values['ADMIN_PASSWORD']
 
     if not os.getenv('NEWSLETTER_FERNET_KEY'):
-        values['NEWSLETTER_FERNET_KEY'] = Fernet.generate_key().decode('ascii')
+        values['NEWSLETTER_FERNET_KEY'] = saved_values.get('NEWSLETTER_FERNET_KEY') or Fernet.generate_key().decode('ascii')
         os.environ['NEWSLETTER_FERNET_KEY'] = values['NEWSLETTER_FERNET_KEY']
+
+    if values:
+        os.makedirs(secrets_dir, mode=0o700, exist_ok=True)
+        for key, value in values.items():
+            set_key(defaults_path, key, value, quote_mode='always')
+        if os.name != 'nt':
+            os.chmod(secrets_dir, 0o700)
+            os.chmod(defaults_path, 0o600)
 
     return values
 
@@ -84,6 +95,10 @@ application = app
 
 def get_csrf_token():
     return session.setdefault('_csrf_token', secrets.token_urlsafe(32))
+
+
+def owner_session_active():
+    return session.get('logged_in') is True and session.get('role') == 'owner'
 
 
 @app.context_processor
@@ -330,7 +345,7 @@ def init_db():
         ).fetchall()
         if len(existing_admins) > 1:
             raise RuntimeError('ADMIN_USERNAME e ADMIN_EMAIL pertencem a contas diferentes.')
-        admin_values = (admin_username, admin_email, generate_password_hash(admin_password), 'admin')
+        admin_values = (admin_username, admin_email, generate_password_hash(admin_password), 'owner')
         if existing_admins:
             db.execute(
                 'UPDATE users SET username = ?, email = ?, password_hash = ?, role = ? WHERE id = ?',
@@ -634,8 +649,8 @@ def login():
             usuario = db.execute('SELECT * FROM users WHERE username = ?', (username,)).fetchone()
 
         if usuario and check_password_hash(usuario['password_hash'], password):
-            if usuario['role'] != 'admin':
-                erro = 'Sua conta não tem acesso ao painel administrativo.'
+            if usuario['role'] != 'owner':
+                erro = 'Somente a conta proprietária pode acessar o painel.'
                 return render_template('login.html', erro=erro), 403
             session.clear()
             session['logged_in'] = True
@@ -656,7 +671,7 @@ def logout():
 
 @app.route('/painel')
 def painel():
-    if not session.get('logged_in'):
+    if not owner_session_active():
         return redirect(url_for('login'))
 
     db = get_db()
@@ -695,7 +710,7 @@ def painel():
 
 @app.route('/painel/newsletter/enviar', methods=['POST'])
 def painel_newsletter_enviar():
-    if not session.get('logged_in'):
+    if not owner_session_active():
         return redirect(url_for('login'))
     if not hmac.compare_digest(
         request.form.get('csrf_token', ''),
@@ -731,7 +746,7 @@ def painel_newsletter_enviar():
 
 @app.route('/painel/banir', methods=['POST'])
 def painel_banir():
-    if not session.get('logged_in'):
+    if not owner_session_active():
         return redirect(url_for('login'))
 
     nick = request.form.get('nick', '').strip()
@@ -753,7 +768,7 @@ def painel_banir():
 
 @app.route('/painel/remover-banimento/<int:ban_id>', methods=['POST'])
 def painel_remover_banimento(ban_id):
-    if not session.get('logged_in'):
+    if not owner_session_active():
         return redirect(url_for('login'))
 
     db = get_db()
@@ -765,7 +780,7 @@ def painel_remover_banimento(ban_id):
 
 @app.route('/painel/adicionar', methods=['POST'])
 def painel_adicionar():
-    if not session.get('logged_in'):
+    if not owner_session_active():
         return redirect(url_for('login'))
 
     nome = request.form.get('nome', '').strip()
@@ -805,7 +820,7 @@ def valid_member_form(nome, cargo, funcao, nivel, status):
 
 @app.route('/painel/atualizar/<int:member_id>', methods=['POST'])
 def painel_atualizar(member_id):
-    if not session.get('logged_in'):
+    if not owner_session_active():
         return redirect(url_for('login'))
 
     nome = request.form.get('nome', '').strip()
@@ -831,7 +846,7 @@ def painel_atualizar(member_id):
 
 @app.route('/painel/remover/<int:member_id>', methods=['POST'])
 def painel_remover(member_id):
-    if not session.get('logged_in'):
+    if not owner_session_active():
         return redirect(url_for('login'))
 
     db = get_db()
@@ -853,7 +868,7 @@ def valid_event_form(titulo, data, descricao):
 
 @app.route('/painel/eventos/adicionar', methods=['POST'])
 def painel_evento_adicionar():
-    if not session.get('logged_in'):
+    if not owner_session_active():
         return redirect(url_for('login'))
 
     titulo = request.form.get('titulo', '').strip()
@@ -875,7 +890,7 @@ def painel_evento_adicionar():
 
 @app.route('/painel/eventos/atualizar/<int:event_id>', methods=['POST'])
 def painel_evento_atualizar(event_id):
-    if not session.get('logged_in'):
+    if not owner_session_active():
         return redirect(url_for('login'))
 
     titulo = request.form.get('titulo', '').strip()
@@ -897,7 +912,7 @@ def painel_evento_atualizar(event_id):
 
 @app.route('/painel/eventos/remover/<int:event_id>', methods=['POST'])
 def painel_evento_remover(event_id):
-    if not session.get('logged_in'):
+    if not owner_session_active():
         return redirect(url_for('login'))
 
     db = get_db()

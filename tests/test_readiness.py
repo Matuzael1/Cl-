@@ -116,10 +116,31 @@ def test_signup_requires_csrf_and_enforces_password_length(client):
     assert user['role'] == 'member'
 
 
+def test_legacy_admin_role_cannot_access_owner_panel_or_mutate_data(client):
+    client.get('/login')
+    with client.session_transaction() as state:
+        csrf_token = state['_csrf_token']
+        state['logged_in'] = True
+        state['role'] = 'admin'
+
+    panel = client.get('/painel')
+    assert panel.status_code == 302 and panel.headers['Location'].endswith('/login')
+    response = client.post('/painel/banir', data={
+        'csrf_token': csrf_token,
+        'nick': 'Unauthorized',
+        'motivo': 'Unauthorized test',
+    })
+    assert response.status_code == 302 and response.headers['Location'].endswith('/login')
+    with application.app.app_context():
+        assert application.get_db().execute(
+            'SELECT 1 FROM banimentos WHERE nick = ?', ('Unauthorized',)
+        ).fetchone() is None
+
+
 def test_admin_member_management_forms_update_and_remove_members(client):
     with client.session_transaction() as state:
         state['logged_in'] = True
-        state['role'] = 'admin'
+        state['role'] = 'owner'
 
     page = client.get('/painel')
     assert page.status_code == 200
@@ -167,7 +188,7 @@ def test_admin_member_management_forms_update_and_remove_members(client):
 def test_admin_event_management_forms_create_update_and_remove_events(client):
     with client.session_transaction() as state:
         state['logged_in'] = True
-        state['role'] = 'admin'
+        state['role'] = 'owner'
 
     panel = client.get('/painel')
     assert panel.status_code == 200

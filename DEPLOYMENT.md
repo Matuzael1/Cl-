@@ -35,7 +35,7 @@ sudo bash /tmp/blackwolves-bootstrap.sh https://github.com/Matuzael1/Cl-.git
 
 O script instala Python, Git, Nginx e Certbot; clona a branch `main`; cria o usuário do serviço e o usuário `deploy`; prepara o ambiente virtual; gera `SECRET_KEY` e `NEWSLETTER_FERNET_KEY`; configura `.env` com permissão `600`; coloca o banco em `/home/blackwolves/data/blackwolves.db`; instala systemd e Nginx; e solicita o certificado HTTPS.
 
-Durante a execução, digite diretamente no terminal SSH a senha do administrador e a senha de app do Gmail. O script não imprime esses valores. Uma chave pública SSH do GitHub Actions pode ser adicionada quando solicitada; pressione Enter para instalá-la depois manualmente. Se o repositório for privado, configure acesso de leitura do VPS ao GitHub antes do clone e do `git pull`.
+Durante a execução, digite diretamente no terminal SSH a senha do proprietário `MatuzaelS` e a senha de app do Gmail. A senha precisa ter pelo menos 14 caracteres; a informada no chat é curta demais para produção e não será instalada no VPS. O script não imprime os valores. Uma chave pública SSH do GitHub Actions pode ser adicionada quando solicitada; pressione Enter para instalá-la depois manualmente. Se o repositório for privado, configure acesso de leitura do VPS ao GitHub antes do clone e do `git pull`.
 
 O Certbot só consegue emitir o certificado quando DNS e firewall estiverem prontos. Se a emissão falhar, corrija DNS/portas e repita a configuração de Certbot no VPS.
 

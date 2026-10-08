@@ -41,8 +41,8 @@ sudo -u blackwolves "$APP_DIR/.venv/bin/pip" install -r "$APP_DIR/requirements.t
 if [[ ! -f "$APP_DIR/.env" ]]; then
     read -r -p "E-mail administrativo [black.wolves.gm@gmail.com]: " admin_email
     admin_email="${admin_email:-black.wolves.gm@gmail.com}"
-    read -r -p "Nome do administrador [blackwolves-admin]: " admin_username
-    admin_username="${admin_username:-blackwolves-admin}"
+    read -r -p "Usuário proprietário [MatuzaelS]: " admin_username
+    admin_username="${admin_username:-MatuzaelS}"
 
     while true; do
         read -r -s -p "Senha forte para o painel (mínimo 14 caracteres): " admin_password
