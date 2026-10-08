@@ -52,6 +52,10 @@ O guia de primeira publicação, DNS, VPS, HTTPS, secrets do GitHub e deploy aut
 
 Em produção, o banco fica em `/home/blackwolves/data/blackwolves.db`, separado do checkout Git. Faça backup seguro do banco, do `.env` (em especial `NEWSLETTER_FERNET_KEY`) e da chave privada de recrutamento.
 
+## Social
+
+Integrantes devem criar uma conta pelo cadastro usando o nick do jogo como username. O owner vincula essa conta a um membro ativo no painel; somente depois a pessoa pode publicar fotos/vídeos e comentar. São aceitos JPG, PNG, WebP, MP4 e WebM de até 25 MB. O feed é público para leitura; o autor ou owner pode remover posts, e o autor ou owner pode apagar comentários. Em produção, os arquivos ficam em `/home/blackwolves/data/social_uploads`, fora do checkout; inclua essa pasta nos backups do servidor.
+
 ## Imagens de notícias
 
 As imagens locais de gameplay e e-sports são capturas da página oficial do PointBlank. Cada card de notícias aponta para o anúncio correspondente da Zepetto.

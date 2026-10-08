@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Galeria | Blackwolves</title>
+    <title>Social | Blackwolves</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -21,7 +21,7 @@
                 <a href="/">Início</a>
                 <a href="/membros">Membros</a>
                 <a href="/noticias">Notícias</a>
-                <a href="/galeria">Galeria</a>
+                <a href="/social">Social</a>
                 <a href="/novidades">Novidades</a>
                 <a href="/recrutamento">Recrutamento</a>
                 <a href="/painel">Painel</a>
@@ -36,8 +36,8 @@
             <div class="container">
                 <div>
                     <p class="tag">BLACKWOLVES</p>
-                    <h1>Galeria do clã</h1>
-                    <p>Momentos, treinos e partidas marcantes da jornada do Blackwolves.</p>
+                    <h1>Social Blackwolves</h1>
+                    <p>Momentos de jogo e vida do clã compartilhados pelos membros.</p>
                 </div>
                 <div class="page-badge">BW</div>
             </div>
@@ -45,18 +45,100 @@
 
         <section class="page-section">
             <div class="container">
-                <div class="section-title compact-title">
-                    <p class="tag">Galeria</p>
-                    <h2>Momentos do clã</h2>
-                </div>
-                <div class="gallery-grid">
-                    {% for imagem in imagens %}
-                    <article class="gallery-card">
-                        <div class="gallery-image" style="background-image: url('{{ imagem }}');"></div>
-                        <span class="label">Blackwolves</span>
-                        <h3>Momento do clã</h3>
-                    </article>
-                    {% endfor %}
+                <div class="social-shell">
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% for category, message in messages %}
+                        <div class="{% if category == 'error' %}error-box{% else %}success-box{% endif %}" role="status">{{ message }}</div>
+                        {% endfor %}
+                    {% endwith %}
+
+                    {% if social_user %}
+                    <section class="social-compose" aria-labelledby="social-compose-title">
+                        <div>
+                            <p class="tag">{{ 'Proprietário' if social_user.is_owner else 'Membro ativo' }}</p>
+                            <h2 id="social-compose-title">Nova publicação</h2>
+                            <p>Compartilhe uma imagem ou vídeo com o clã.</p>
+                        </div>
+                        <form method="POST" action="{{ url_for('social_publicar') }}" enctype="multipart/form-data">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                            <label class="social-upload" for="social-media">Imagem ou vídeo (máximo 25 MB)</label>
+                            <input id="social-media" name="media" type="file" accept="image/jpeg,image/png,image/webp,video/mp4,video/webm" required>
+                            <label for="social-caption">Legenda</label>
+                            <textarea id="social-caption" name="caption" maxlength="500" placeholder="Conte sobre este momento no jogo ou no clã."></textarea>
+                            <button class="btn primary" type="submit">Publicar</button>
+                        </form>
+                    </section>
+                    {% else %}
+                    <aside class="social-join-note">
+                        <p>Entre com uma conta vinculada pelo proprietário a um membro ativo para publicar e comentar.</p>
+                        <a class="btn secondary" href="{{ login_url }}">Entrar para participar</a>
+                    </aside>
+                    {% endif %}
+
+                    <div class="social-feed" aria-label="Publicações do clã">
+                        {% for post in posts %}
+                        <article class="social-post" id="post-{{ post.id }}">
+                            <header class="social-post-header">
+                                <div>
+                                    <strong>{{ post.author_name }}</strong>
+                                    <time>{{ post.created_at }}</time>
+                                </div>
+                                {% if post.can_remove %}
+                                <form method="POST" action="{{ url_for('social_remover', post_id=post.id) }}">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                                    <button class="social-text-button" type="submit">Remover publicação</button>
+                                </form>
+                                {% endif %}
+                            </header>
+
+                            {% if post.media_kind == 'video' %}
+                            <video class="social-post-media" controls preload="metadata" playsinline>
+                                <source src="{{ url_for('social_media_file', filename=post.media_filename) }}" type="{{ 'video/mp4' if post.media_filename.endswith('.mp4') else 'video/webm' }}">
+                                Seu navegador não consegue reproduzir este vídeo.
+                            </video>
+                            {% else %}
+                            <img class="social-post-media" src="{{ url_for('social_media_file', filename=post.media_filename) }}" alt="Publicação de {{ post.author_name }} no Social Blackwolves" loading="lazy" decoding="async">
+                            {% endif %}
+
+                            {% if post.caption %}
+                            <p class="social-caption">{{ post.caption }}</p>
+                            {% endif %}
+
+                            <section class="social-comments" aria-label="Comentários">
+                                <h3>Comentários</h3>
+                                {% for comment in post.comments %}
+                                <div class="social-comment">
+                                    <p><strong>{{ comment.author_name }}</strong> {{ comment.body }}</p>
+                                    {% if social_user and (social_user.is_owner or social_user.id == comment.user_id) %}
+                                    <form method="POST" action="{{ url_for('social_comentario_remover', comment_id=comment.id) }}">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                                        <button class="social-text-button" type="submit">Excluir</button>
+                                    </form>
+                                    {% endif %}
+                                </div>
+                                {% else %}
+                                <p class="social-no-comments">Ainda não há comentários.</p>
+                                {% endfor %}
+
+                                {% if social_user %}
+                                <form class="social-comment-form" method="POST" action="{{ url_for('social_comentar', post_id=post.id) }}">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                                    <label class="visually-hidden" for="comment-{{ post.id }}">Escreva um comentário</label>
+                                    <input id="comment-{{ post.id }}" name="body" maxlength="500" placeholder="Escreva um comentário" required>
+                                    <button class="btn secondary" type="submit">Comentar</button>
+                                </form>
+                                {% else %}
+                                <a class="social-text-button" href="{{ login_url }}">Entre para comentar</a>
+                                {% endif %}
+                            </section>
+                        </article>
+                        {% else %}
+                        <div class="social-empty-state">
+                            <h2>O feed ainda está vazio</h2>
+                            <p>As publicações dos membros aparecerão aqui.</p>
+                        </div>
+                        {% endfor %}
+                    </div>
                 </div>
             </div>
         </section>

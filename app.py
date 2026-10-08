@@ -10,13 +10,15 @@ import socket
 import sqlite3
 from datetime import datetime, timedelta, timezone
 from email.message import EmailMessage
+from urllib.parse import urlsplit
+from uuid import uuid4
 
 from cryptography.fernet import Fernet, InvalidToken
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from dotenv import dotenv_values, load_dotenv, set_key
-from flask import Flask, abort, flash, g, jsonify, redirect, render_template, request, session, url_for
+from flask import Flask, abort, flash, g, jsonify, redirect, render_template, request, send_from_directory, session, url_for
 from werkzeug.security import check_password_hash, generate_password_hash
 
 load_dotenv(os.path.join(os.path.dirname(__file__), '.env'))
@@ -78,8 +80,13 @@ app.config['SECRET_KEY'] = secret_key or os.urandom(32)
 app.config['SESSION_COOKIE_SECURE'] = os.getenv('APP_ENV') == 'production'
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
-app.config['MAX_CONTENT_LENGTH'] = 192 * 1024
+app.config['MAX_CONTENT_LENGTH'] = 27 * 1024 * 1024
 DATABASE = os.getenv('DATABASE_PATH', os.path.join(app.root_path, 'blackwolves.db'))
+SOCIAL_UPLOAD_MAX_BYTES = 25 * 1024 * 1024
+SOCIAL_UPLOAD_DIR = os.getenv(
+    'SOCIAL_UPLOAD_DIR',
+    os.path.join(os.path.dirname(DATABASE), 'social_uploads'),
+)
 SMTP_HOST = os.getenv('SMTP_HOST', 'smtp.gmail.com')
 SMTP_PORT = int(os.getenv('SMTP_PORT', '587'))
 EMAIL_FROM = os.getenv('EMAIL_FROM', 'black.wolves.gm@gmail.com')
@@ -99,6 +106,59 @@ def get_csrf_token():
 
 def owner_session_active():
     return session.get('logged_in') is True and session.get('role') == 'owner'
+
+
+def social_actor():
+    db = get_db()
+    if owner_session_active():
+        user = db.execute(
+            'SELECT id, username FROM users WHERE username = ? AND role = ?',
+            (session.get('username', ''), 'owner'),
+        ).fetchone()
+        if user:
+            return {'id': user['id'], 'name': user['username'], 'is_owner': True}
+
+    if session.get('logged_in') is True and session.get('role') == 'member':
+        member = db.execute(
+            'SELECT users.id, members.nome FROM users '
+            'JOIN members ON members.id = users.member_id '
+            'WHERE users.username = ? AND users.role = ? AND members.status = ?',
+            (session.get('username', ''), 'member', 'ativo'),
+        ).fetchone()
+        if member:
+            return {'id': member['id'], 'name': member['nome'], 'is_owner': False}
+    return None
+
+
+def social_post_authorized(post, actor):
+    return bool(actor and (actor['is_owner'] or actor['id'] == post['user_id']))
+
+
+def inspect_social_upload(upload):
+    if not upload or not upload.filename:
+        return None
+    extension = os.path.splitext(upload.filename)[1].lower()
+    upload.stream.seek(0, os.SEEK_END)
+    size = upload.stream.tell()
+    upload.stream.seek(0)
+    if size <= 0 or size > SOCIAL_UPLOAD_MAX_BYTES:
+        return None
+
+    signature = upload.stream.read(16)
+    upload.stream.seek(0)
+    image_signatures = {
+        '.jpg': signature.startswith(b'\xff\xd8\xff'),
+        '.jpeg': signature.startswith(b'\xff\xd8\xff'),
+        '.png': signature.startswith(b'\x89PNG\r\n\x1a\n'),
+        '.webp': len(signature) >= 12 and signature[:4] == b'RIFF' and signature[8:12] == b'WEBP',
+    }
+    if image_signatures.get(extension):
+        return 'image', extension
+    if extension == '.mp4' and len(signature) >= 8 and signature[4:8] == b'ftyp':
+        return 'video', extension
+    if extension == '.webm' and signature.startswith(b'\x1a\x45\xdf\xa3'):
+        return 'video', extension
+    return None
 
 
 @app.context_processor
@@ -241,6 +301,7 @@ def get_db():
         db = sqlite3.connect(DATABASE)
         db.row_factory = sqlite3.Row
         db.execute('PRAGMA secure_delete = ON')
+        db.execute('PRAGMA foreign_keys = ON')
         g._database = db
     return db
 
@@ -262,6 +323,7 @@ def init_db():
             email TEXT UNIQUE NOT NULL,
             password_hash TEXT NOT NULL,
             role TEXT NOT NULL DEFAULT 'member',
+            member_id INTEGER REFERENCES members(id) ON DELETE SET NULL,
             created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
         );
 
@@ -318,6 +380,28 @@ def init_db():
             motivo TEXT NOT NULL,
             created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
         );
+
+        CREATE TABLE IF NOT EXISTS social_posts (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+            author_name TEXT NOT NULL,
+            media_filename TEXT NOT NULL UNIQUE,
+            media_kind TEXT NOT NULL CHECK (media_kind IN ('image', 'video')),
+            caption TEXT NOT NULL DEFAULT '',
+            created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+        );
+
+        CREATE TABLE IF NOT EXISTS social_comments (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            post_id INTEGER NOT NULL REFERENCES social_posts(id) ON DELETE CASCADE,
+            user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+            author_name TEXT NOT NULL,
+            body TEXT NOT NULL,
+            created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_social_posts_created_at ON social_posts(created_at DESC);
+        CREATE INDEX IF NOT EXISTS idx_social_comments_post_id ON social_comments(post_id, created_at ASC);
         """
     )
 
@@ -334,6 +418,12 @@ def init_db():
     user_columns = {row['name'] for row in db.execute('PRAGMA table_info(users)')}
     if 'role' not in user_columns:
         db.execute("ALTER TABLE users ADD COLUMN role TEXT NOT NULL DEFAULT 'member'")
+    if 'member_id' not in user_columns:
+        db.execute('ALTER TABLE users ADD COLUMN member_id INTEGER REFERENCES members(id) ON DELETE SET NULL')
+    db.execute(
+        'CREATE UNIQUE INDEX IF NOT EXISTS idx_users_member_id '
+        'ON users(member_id) WHERE member_id IS NOT NULL'
+    )
 
     admin_username = os.getenv('ADMIN_USERNAME', '').strip()
     admin_password = os.getenv('ADMIN_PASSWORD', '')
@@ -454,13 +544,147 @@ def noticias():
 
 @app.route('/galeria')
 def galeria():
-    imagens = [
-        'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=900&q=80',
-        'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=900&q=80',
-        'https://images.unsplash.com/photo-1526379095098-d400fd0bf935?auto=format&fit=crop&w=900&q=80',
-        'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=900&q=80'
-    ]
-    return render_template('galeria.html', imagens=imagens)
+    return redirect(url_for('social'))
+
+
+@app.route('/social')
+def social():
+    db = get_db()
+    actor = social_actor()
+    posts = db.execute(
+        'SELECT id, user_id, author_name, media_filename, media_kind, caption, created_at '
+        'FROM social_posts ORDER BY created_at DESC, id DESC LIMIT 100'
+    ).fetchall()
+    feed = []
+    for post in posts:
+        item = dict(post)
+        item['comments'] = db.execute(
+            'SELECT id, user_id, author_name, body, created_at FROM social_comments '
+            'WHERE post_id = ? ORDER BY created_at ASC, id ASC',
+            (post['id'],),
+        ).fetchall()
+        item['can_remove'] = social_post_authorized(post, actor)
+        feed.append(item)
+    return render_template(
+        'galeria.html',
+        posts=feed,
+        social_user=actor,
+        login_url=url_for('login', next=url_for('social')),
+    )
+
+
+@app.route('/social-media/<path:filename>')
+def social_media_file(filename):
+    return send_from_directory(SOCIAL_UPLOAD_DIR, filename, conditional=True, max_age=3600)
+
+
+@app.route('/social/publicar', methods=['POST'])
+def social_publicar():
+    actor = social_actor()
+    if not actor:
+        flash('Entre com uma conta de membro ativo vinculada pelo proprietário para publicar.', 'error')
+        return redirect(url_for('login'))
+
+    caption = request.form.get('caption', '').strip()
+    if len(caption) > 500:
+        flash('A legenda pode ter no máximo 500 caracteres.', 'error')
+        return redirect(url_for('social'))
+
+    upload = request.files.get('media')
+    media_details = inspect_social_upload(upload)
+    if not media_details:
+        flash('Envie uma imagem JPG, PNG ou WebP, ou um vídeo MP4 ou WebM de até 25 MB.', 'error')
+        return redirect(url_for('social'))
+
+    media_kind, extension = media_details
+    filename = f'{uuid4().hex}{extension}'
+    os.makedirs(SOCIAL_UPLOAD_DIR, exist_ok=True)
+    destination = os.path.join(SOCIAL_UPLOAD_DIR, filename)
+    upload.save(destination)
+    try:
+        db = get_db()
+        db.execute(
+            'INSERT INTO social_posts (user_id, author_name, media_filename, media_kind, caption) '
+            'VALUES (?, ?, ?, ?, ?)',
+            (actor['id'], actor['name'], filename, media_kind, caption),
+        )
+        db.commit()
+    except sqlite3.Error:
+        if os.path.exists(destination):
+            os.remove(destination)
+        raise
+
+    flash('Publicação adicionada ao Social.', 'success')
+    return redirect(url_for('social'))
+
+
+@app.route('/social/<int:post_id>/comentar', methods=['POST'])
+def social_comentar(post_id):
+    actor = social_actor()
+    if not actor:
+        flash('Entre com uma conta de membro ativo vinculada pelo proprietário para comentar.', 'error')
+        return redirect(url_for('login'))
+
+    body = request.form.get('body', '').strip()
+    if not body or len(body) > 500:
+        flash('O comentário é obrigatório e pode ter até 500 caracteres.', 'error')
+        return redirect(url_for('social'))
+
+    db = get_db()
+    if not db.execute('SELECT 1 FROM social_posts WHERE id = ?', (post_id,)).fetchone():
+        abort(404)
+    db.execute(
+        'INSERT INTO social_comments (post_id, user_id, author_name, body) VALUES (?, ?, ?, ?)',
+        (post_id, actor['id'], actor['name'], body),
+    )
+    db.commit()
+    return redirect(url_for('social', _anchor=f'post-{post_id}'))
+
+
+@app.route('/social/<int:post_id>/remover', methods=['POST'])
+def social_remover(post_id):
+    actor = social_actor()
+    if not actor:
+        return redirect(url_for('login'))
+
+    db = get_db()
+    post = db.execute(
+        'SELECT user_id, media_filename FROM social_posts WHERE id = ?',
+        (post_id,),
+    ).fetchone()
+    if not post:
+        abort(404)
+    if not actor['is_owner'] and actor['id'] != post['user_id']:
+        abort(403)
+
+    db.execute('DELETE FROM social_posts WHERE id = ?', (post_id,))
+    db.commit()
+    media_path = os.path.join(SOCIAL_UPLOAD_DIR, post['media_filename'])
+    if os.path.isfile(media_path):
+        os.remove(media_path)
+    flash('Publicação removida.', 'success')
+    return redirect(url_for('social'))
+
+
+@app.route('/social/comentarios/<int:comment_id>/remover', methods=['POST'])
+def social_comentario_remover(comment_id):
+    actor = social_actor()
+    if not actor:
+        return redirect(url_for('login'))
+
+    db = get_db()
+    comment = db.execute(
+        'SELECT id, user_id, post_id FROM social_comments WHERE id = ?',
+        (comment_id,),
+    ).fetchone()
+    if not comment:
+        abort(404)
+    if not actor['is_owner'] and actor['id'] != comment['user_id']:
+        abort(403)
+
+    db.execute('DELETE FROM social_comments WHERE id = ?', (comment_id,))
+    db.commit()
+    return redirect(url_for('social', _anchor=f'post-{comment["post_id"]}'))
 
 
 @app.route('/banimentos')
@@ -649,14 +873,33 @@ def login():
             usuario = db.execute('SELECT * FROM users WHERE username = ?', (username,)).fetchone()
 
         if usuario and check_password_hash(usuario['password_hash'], password):
-            if usuario['role'] != 'owner':
-                erro = 'Somente a conta proprietária pode acessar o painel.'
+            role = usuario['role']
+            if role == 'member':
+                active_member = db.execute(
+                    "SELECT 1 FROM members WHERE id = ? AND status = 'ativo'",
+                    (usuario['member_id'],),
+                ).fetchone() if usuario['member_id'] else None
+                if not active_member:
+                    erro = 'Sua conta ainda não foi vinculada a um membro ativo do clã.'
+                    return render_template('login.html', erro=erro), 403
+            elif role != 'owner':
+                erro = 'Conta sem permissão para acessar o site social.'
                 return render_template('login.html', erro=erro), 403
             session.clear()
             session['logged_in'] = True
-            session['role'] = usuario['role']
+            session['role'] = role
             session['username'] = usuario['username']
-            return redirect(url_for('painel'))
+            next_url = request.args.get('next', '')
+            parsed_next = urlsplit(next_url)
+            if (
+                next_url.startswith('/')
+                and not next_url.startswith('//')
+                and '\\' not in next_url
+                and not parsed_next.scheme
+                and not parsed_next.netloc
+            ):
+                return redirect(next_url)
+            return redirect(url_for('painel') if role == 'owner' else url_for('social'))
 
         erro = 'Credenciais inválidas. Tente novamente.'
 
@@ -677,6 +920,15 @@ def painel():
     db = get_db()
     membros_db = db.execute('SELECT * FROM members ORDER BY nome ASC').fetchall()
     eventos_db = db.execute('SELECT * FROM events ORDER BY data ASC, id ASC').fetchall()
+    contas_sociais = db.execute(
+        'SELECT users.id, users.username, users.email, users.member_id, members.nome AS member_name '
+        'FROM users LEFT JOIN members ON members.id = users.member_id '
+        'WHERE users.role = ? ORDER BY users.username ASC',
+        ('member',),
+    ).fetchall()
+    membros_vinculaveis = db.execute(
+        "SELECT id, nome FROM members WHERE status = 'ativo' ORDER BY nome ASC"
+    ).fetchall()
     inscricoes = db.execute('SELECT * FROM encrypted_applications ORDER BY created_at DESC').fetchall()
     banimentos = db.execute('SELECT * FROM banimentos ORDER BY created_at DESC').fetchall()
     total_membros = db.execute('SELECT COUNT(*) FROM members').fetchone()[0]
@@ -686,6 +938,15 @@ def painel():
         'SELECT COUNT(*) FROM newsletter_subscribers WHERE confirmed_at IS NOT NULL AND unsubscribed_at IS NULL'
     ).fetchone()[0]
     total_banidos = db.execute('SELECT COUNT(*) FROM banimentos').fetchone()[0]
+    contas_sociais = db.execute(
+        'SELECT users.id, users.username, users.email, users.member_id, members.nome AS member_name '
+        'FROM users LEFT JOIN members ON members.id = users.member_id '
+        'WHERE users.role = ? ORDER BY users.username ASC',
+        ('member',),
+    ).fetchall()
+    membros_vinculaveis = db.execute(
+        "SELECT id, nome FROM members WHERE status = 'ativo' ORDER BY nome ASC"
+    ).fetchall()
 
     stats = {
         'membros': total_membros,
@@ -701,6 +962,8 @@ def painel():
         'painel.html',
         membros_cla=membros_db,
         eventos=eventos_db,
+        contas_sociais=contas_sociais,
+        membros_vinculaveis=membros_vinculaveis,
         inscricoes=inscricoes,
         banimentos=banimentos,
         stats=stats,
@@ -919,6 +1182,50 @@ def painel_evento_remover(event_id):
     db.execute('DELETE FROM events WHERE id = ?', (event_id,))
     db.commit()
     flash('Evento removido da agenda.', 'success')
+    return redirect(url_for('painel'))
+
+
+@app.route('/painel/social/vincular', methods=['POST'])
+def painel_social_vincular():
+    if not owner_session_active():
+        return redirect(url_for('login'))
+
+    try:
+        user_id = int(request.form.get('user_id', ''))
+        member_id_value = request.form.get('member_id', '').strip()
+        member_id = int(member_id_value) if member_id_value else None
+    except ValueError:
+        flash('Conta ou membro selecionado inválido.', 'error')
+        return redirect(url_for('painel'))
+
+    db = get_db()
+    user = db.execute(
+        'SELECT username FROM users WHERE id = ? AND role = ?',
+        (user_id, 'member'),
+    ).fetchone()
+    if not user:
+        flash('Apenas contas de membro podem ser vinculadas ao roster.', 'error')
+        return redirect(url_for('painel'))
+
+    if member_id is not None and not db.execute(
+        "SELECT 1 FROM members WHERE id = ? AND status = 'ativo'",
+        (member_id,),
+    ).fetchone():
+        flash('Só é possível vincular uma conta a um membro ativo.', 'error')
+        return redirect(url_for('painel'))
+
+    try:
+        db.execute('UPDATE users SET member_id = ? WHERE id = ?', (member_id, user_id))
+        db.commit()
+    except sqlite3.IntegrityError:
+        db.rollback()
+        flash('Esse membro já está vinculado a outra conta.', 'error')
+        return redirect(url_for('painel'))
+
+    if member_id is None:
+        flash(f'A conta "{user["username"]}" não pode mais publicar nem comentar.', 'success')
+    else:
+        flash(f'A conta "{user["username"]}" foi vinculada ao roster social.', 'success')
     return redirect(url_for('painel'))
 
 

@@ -21,7 +21,7 @@
                 <a href="/">Início</a>
                 <a href="/membros">Membros</a>
                 <a href="/noticias">Notícias</a>
-                <a href="/galeria">Galeria</a>
+                <a href="/social">Social</a>
                 <a href="/novidades">Novidades</a>
                 <a href="/eventos">Eventos</a>
                 <a href="/recrutamento">Recrutamento</a>
@@ -158,6 +158,36 @@
                         </details>
                     </article>
                     {% endfor %}
+                    </div>
+                </section>
+
+                <section class="social-account-admin" aria-labelledby="social-account-title">
+                    <div class="section-title compact-title">
+                        <p class="tag">Social do clã</p>
+                        <h2 id="social-account-title">Vincular contas dos membros</h2>
+                    </div>
+                    <p>Peça para cada integrante criar uma conta usando o nick do jogo e informe esse username ao owner. Só contas vinculadas a membros ativos podem publicar e comentar; cadastros públicos não recebem acesso automaticamente.</p>
+                    <div class="social-account-list">
+                        {% for account in contas_sociais %}
+                        <form method="POST" action="{{ url_for('painel_social_vincular') }}" class="social-account-row">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                            <input type="hidden" name="user_id" value="{{ account.id }}">
+                            <div class="social-account-identity">
+                                <strong>{{ account.username }}</strong>
+                                <span>{{ account.email }}</span>
+                            </div>
+                            <label class="visually-hidden" for="social-member-{{ account.id }}">Vincular {{ account.username }} a membro</label>
+                            <select id="social-member-{{ account.id }}" name="member_id">
+                                <option value="">Sem acesso social</option>
+                                {% for member in membros_vinculaveis %}
+                                <option value="{{ member.id }}" {% if account.member_id == member.id %}selected{% endif %}>{{ member.nome }}</option>
+                                {% endfor %}
+                            </select>
+                            <button class="btn secondary" type="submit">Salvar vínculo</button>
+                        </form>
+                        {% else %}
+                        <p class="empty-state">Ainda não há contas de membro cadastradas para vincular.</p>
+                        {% endfor %}
                     </div>
                 </section>
 

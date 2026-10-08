@@ -39,6 +39,8 @@ Durante a execução, digite diretamente no terminal SSH a senha do proprietári
 
 O Certbot só consegue emitir o certificado quando DNS e firewall estiverem prontos. Se a emissão falhar, corrija DNS/portas e repita a configuração de Certbot no VPS.
 
+O Social aceita fotos e vídeos de até 25 MB. Os uploads ficam em `/home/blackwolves/data/social_uploads`, junto ao banco mas fora do checkout Git, para sobreviver aos deploys. Inclua essa pasta nos backups e monitore espaço em disco.
+
 ## 3. Ativar deploy automático
 
 Crie uma chave Ed25519 dedicada para o GitHub Actions no computador administrador e instale a chave pública no usuário `deploy` do VPS. Cadastre estes secrets em **GitHub > Settings > Secrets and variables > Actions**:
