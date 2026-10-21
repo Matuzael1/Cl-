@@ -36,7 +36,7 @@
                 <div>
                     <p class="tag">RECRUTAMENTO</p>
                     <h1>Entrar no Blackwolves</h1>
-                    <p>Se você busca um clã com objetivo, disciplina e espírito de equipe, preencha o formulário abaixo.</p>
+                    <p>Se você joga PointBlank ou Clash of Clans e busca estratégia, respeito e espírito de equipe, preencha o formulário abaixo.</p>
                 </div>
                 <div class="page-badge"><img class="page-badge-image" src="{{ url_for('static', filename='images/blackwolves-gaming-logo.jpg') }}" alt="Logo Blackwolves Gaming"></div>
             </div>
@@ -61,8 +61,17 @@
                     <form id="recruitment-form" method="POST" data-public-key="{{ url_for('static', filename='recruitment-public.pem') }}">
                         <div class="form-grid">
                             <div class="form-field">
-                                <label for="nick">Nick no jogo</label>
-                                <input id="nick" type="text" maxlength="80" autocomplete="nickname" placeholder="Seu nick" required>
+                                <label for="game">Jogo de interesse</label>
+                                <select id="game" required>
+                                    <option value="pointblank">PointBlank</option>
+                                    <option value="clash_of_clans">Clash of Clans</option>
+                                    <option value="both">Ambos</option>
+                                </select>
+                            </div>
+
+                            <div class="form-field">
+                                <label for="nick">Nick principal</label>
+                                <input id="nick" type="text" maxlength="80" autocomplete="nickname" placeholder="Seu nick no jogo" required>
                             </div>
 
                             <div class="form-field">
@@ -88,7 +97,7 @@
         <div class="container footer-content">
             <div>
                 <h3>Blackwolves</h3>
-                <p>Clã comunitário independente de PointBlank.</p>
+                <p>Clã comunitário independente: PointBlank e Clash of Clans.</p>
             </div>
             <a href="mailto:black.wolves.gm@gmail.com">black.wolves.gm@gmail.com</a>
             {% include 'legal-links.html' %}

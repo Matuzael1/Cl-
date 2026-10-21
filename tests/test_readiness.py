@@ -45,6 +45,22 @@ def test_news_link_to_official_sources_without_unlicensed_copies(client):
     assert all(source in html for source in ('idx=366', 'idx=365', 'idx=363'))
 
 
+def test_ban_page_summarizes_game_conduct_and_separates_clan_records(client):
+    html = client.get('/banimentos').get_data(as_text=True)
+
+    assert 'Condutas proibidas no clã' in html
+    assert 'Software e automação' in html
+    assert 'Exploração e manipulação' in html
+    assert 'Venda, fraude e credenciais' in html
+    assert 'Abuso e perturbação' in html
+    assert 'denúncias deliberadamente falsas' in html
+    assert 'incentivo à quebra destas regras' in html
+    assert 'Este código de conduta é interno do Blackwolves' in html
+    assert 'não alteram contas ou punições dentro dos jogos' in html
+    assert 'Supercell' not in html
+    assert 'Zepetto' not in html
+
+
 def test_blackwolves_logo_is_served_and_used_by_brand_elements(client):
     response = client.get('/')
     html = response.get_data(as_text=True)
@@ -55,6 +71,21 @@ def test_blackwolves_logo_is_served_and_used_by_brand_elements(client):
     assert logo.data.startswith(b'\xff\xd8\xff')
     assert html.count('/static/images/blackwolves-gaming-logo.jpg') >= 2
     assert 'alt="Blackwolves Gaming"' in html
+
+
+def test_home_and_recruitment_present_both_clan_games(client):
+    home = client.get('/').get_data(as_text=True)
+    recruitment = client.get('/recrutamento').get_data(as_text=True)
+    encryption_script = client.get('/static/recruitment-e2ee.js').get_data(as_text=True)
+
+    for game in ('PointBlank', 'Clash of Clans'):
+        assert game in home
+        assert game in recruitment
+    assert 'JOGAMOS JUNTOS' in home
+    assert 'DOIS JOGOS' not in home
+    assert home.index('id="sobre"') < home.index('CLÃ MULTIJOGOS')
+    assert 'Ambos' in recruitment
+    assert "form.querySelector('#game').value" in encryption_script
 
 
 def test_legal_pages_and_cookie_notice_are_available(client):

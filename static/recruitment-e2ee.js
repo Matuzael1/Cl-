@@ -54,6 +54,7 @@ if (form) {
             );
             const iv = crypto.getRandomValues(new Uint8Array(12));
             const data = {
+                game: form.querySelector('#game').value,
                 nick: form.querySelector('#nick').value,
                 email: form.querySelector('#email').value,
                 aceite: form.querySelector('#aceite').checked,

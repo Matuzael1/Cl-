@@ -1,6 +1,6 @@
 # Blackwolves Site
 
-Site Flask do clã Blackwolves, com painel administrativo, recrutamento cifrado no navegador, newsletter e lista de banimentos.
+Site Flask do clã Blackwolves, comunidade independente que joga PointBlank e Clash of Clans, com painel administrativo, recrutamento cifrado no navegador, newsletter e lista de banimentos.
 
 ## Rodar localmente
 

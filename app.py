@@ -572,14 +572,14 @@ def termos_de_servico():
                 'title': 'Publicações e comentários',
                 'paragraphs': [
                     'Você mantém seus direitos sobre o conteúdo enviado e declara ter autorização para publicá-lo. Ao publicar, permite que o site armazene e exiba esse conteúdo aos visitantes do Social.',
-                    'Não publique conteúdo ilegal, ameaças, assédio, dados pessoais de terceiros, malware, material sem autorização ou arquivos que violem as regras do PointBlank. O limite atual é 25 MB por imagem ou vídeo.',
+                    'Não publique conteúdo ilegal, ameaças, assédio, dados pessoais de terceiros, malware, material sem autorização ou conteúdo que viole as regras de PointBlank ou Clash of Clans. O limite atual é 25 MB por imagem ou vídeo.',
                 ],
             },
             {
                 'title': 'Moderação e integridade',
                 'paragraphs': [
                     'O autor pode remover suas publicações e comentários; o owner pode remover conteúdo do Social e suspender vínculos que violem estas regras. Hacks, macros, scripts proibidos, fraude e comportamento abusivo não são aceitos.',
-                    'O site é uma ferramenta comunitária independente e não é afiliado à Zepetto. PointBlank e seus materiais pertencem aos respectivos titulares.',
+                    'O Blackwolves é uma comunidade independente e não é afiliado à Zepetto ou à Supercell. PointBlank, Clash of Clans e seus materiais pertencem aos respectivos titulares.',
                 ],
             },
             {

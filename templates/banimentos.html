@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Banimentos | Blackwolves</title>
+    <title>Regras e banimentos | Blackwolves</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <script defer src="{{ url_for('static', filename='navigation.js') }}"></script>
 </head>
@@ -21,7 +21,7 @@
                 <a href="/eventos">Eventos</a>
                 <a href="/novidades">Novidades</a>
                 <a href="/recrutamento">Recrutamento</a>
-                <a href="/banimentos">Banidos</a>
+                <a href="/banimentos">Regras e banimentos</a>
                 <a href="/login">Login</a>
             </nav>
         </div>
@@ -31,16 +31,52 @@
         <section class="page-hero">
             <div class="container">
                 <div>
-                    <p class="tag">LISTA DE BANIMENTO</p>
-                    <h1>Jogadores proibidos</h1>
-                    <p>Registro oficial do clã para quem utiliza hacks, macro, script ou práticas proibidas no cenário do jogo.</p>
+                    <p class="tag">JOGO LIMPO</p>
+                    <h1>Regras e registros do clã</h1>
+                    <p>Veja as condutas que não aceitamos em PointBlank e Clash of Clans e, separadamente, os registros internos do Blackwolves.</p>
                 </div>
                 <div class="page-badge"><img class="page-badge-image" src="{{ url_for('static', filename='images/blackwolves-gaming-logo.jpg') }}" alt="Logo Blackwolves Gaming"></div>
             </div>
         </section>
 
         <section class="page-section">
-            <div class="container">
+            <div class="container conduct-container">
+                <section aria-labelledby="conduct-title">
+                    <div class="section-title compact-title">
+                        <p class="tag">CÓDIGO DE CONDUTA</p>
+                        <h2 id="conduct-title">Condutas proibidas no clã</h2>
+                        <p>Este código de conduta é interno do Blackwolves e se aplica à participação no clã e às atividades organizadas pelo grupo. A lista é um resumo e pode ser atualizada pela administração.</p>
+                    </div>
+                    <div class="conduct-grid">
+                        <article class="event-card">
+                            <span>Trapaça</span>
+                            <h3>Software e automação</h3>
+                            <p>Não use hacks, cheats, clientes modificados, bots, automações, macros, scripts ou ferramentas externas para alterar o jogo, automatizar progresso, burlar proteções ou obter vantagem indevida.</p>
+                        </article>
+                        <article class="event-card">
+                            <span>Competição</span>
+                            <h3>Exploração e manipulação</h3>
+                            <p>Não explore bugs deliberadamente para ganhar vantagem, manipule matchmaking ou rankings, combine resultados, faça win trading ou interfira no funcionamento dos jogos e servidores.</p>
+                        </article>
+                        <article class="event-card">
+                            <span>Contas e compras</span>
+                            <h3>Venda, fraude e credenciais</h3>
+                            <p>Não compre, venda ou transfira contas; não compartilhe acesso para obter vantagem competitiva; não compre gemas ou itens de vendedores não autorizados, abuse de estornos, pratique phishing ou solicite credenciais.</p>
+                        </article>
+                        <article class="event-card">
+                            <span>Comunidade</span>
+                            <h3>Abuso e perturbação</h3>
+                            <p>Não pratique assédio, ameaças, bullying, discriminação, discurso de ódio, palavrões excessivos, conteúdo sexual ou ofensivo, spam, anúncios repetidos, golpes, personificação de jogadores ou moderadores, solicitação ou exposição de dados pessoais, denúncias deliberadamente falsas, incentivo à quebra destas regras ou ataques contra serviços.</p>
+                        </article>
+                    </div>
+                </section>
+
+                <section class="clan-ban-records" aria-labelledby="clan-ban-records-title">
+                    <div class="section-title compact-title">
+                        <p class="tag">REGISTROS DO BLACKWOLVES</p>
+                        <h2 id="clan-ban-records-title">Restrições internas do clã</h2>
+                        <p>Estes registros refletem decisões internas sobre participação no Blackwolves e não alteram contas ou punições dentro dos jogos.</p>
+                    </div>
                 <div class="ban-list-public">
                     {% for item in banimentos %}
                     <article class="ban-list-item public">
@@ -53,10 +89,11 @@
                     </article>
                     {% else %}
                     <div class="empty-state-card">
-                        <p>Nenhum registro de banimento no momento. O cenário está limpo e os padrões do clã continuam válidos.</p>
+                        <p>Nenhum registro interno de restrição publicado no momento.</p>
                     </div>
                     {% endfor %}
                 </div>
+                </section>
             </div>
         </section>
     </main>
@@ -65,7 +102,7 @@
         <div class="container footer-content">
             <div>
                 <h3>Blackwolves</h3>
-                <p>Clã comunitário independente de PointBlank.</p>
+                <p>Clã comunitário independente: PointBlank e Clash of Clans.</p>
             </div>
             <a href="mailto:black.wolves.gm@gmail.com">black.wolves.gm@gmail.com</a>
             {% include 'legal-links.html' %}

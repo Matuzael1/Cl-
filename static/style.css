@@ -100,6 +100,10 @@ body::after {
     box-shadow: 0 10px 30px rgba(0,0,0,0.28);
 }
 
+.topbar .container {
+    width: min(1360px, 96%);
+}
+
 .nav {
     display: flex;
     justify-content: space-between;
@@ -143,6 +147,10 @@ nav {
     white-space: nowrap;
     scrollbar-color: rgba(255, 179, 71, 0.55) transparent;
     scrollbar-width: thin;
+}
+
+.topbar nav {
+    justify-content: space-between;
 }
 
 nav a {
@@ -242,14 +250,14 @@ nav::-webkit-scrollbar-thumb {
     margin-bottom: 18px;
 }
 
-.hero-text h1,
+.hero-text h2,
 .section-title h2,
 .page-hero h1,
 .auth-box h2 {
     font-family: 'Orbitron', sans-serif;
 }
 
-.hero-text h1 {
+.hero-text h2 {
     font-size: clamp(3.5rem, 7vw, 7rem);
     line-height: 0.9;
     letter-spacing: -0.06em;
@@ -387,10 +395,11 @@ nav::-webkit-scrollbar-thumb {
 
 .banner-card h2 {
     text-align: center;
-    font-size: clamp(1.6rem, 3vw, 2.4rem);
+    font-size: clamp(1.25rem, 2.2vw, 1.8rem);
     margin-bottom: 10px;
     font-family: 'Orbitron', sans-serif;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
 }
 
 .banner-card p {
@@ -649,6 +658,22 @@ nav::-webkit-scrollbar-thumb {
 .info-grid,
 .event-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.conduct-container {
+    width: min(1600px, 96%);
+}
+
+.conduct-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 24px;
+}
+
+@media (max-width: 1150px) {
+    .conduct-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
 }
 
 .news-grid {
@@ -1757,7 +1782,7 @@ nav::-webkit-scrollbar-thumb {
         text-align: center;
     }
 
-    .hero-text h1 {
+    .hero-text h2 {
         font-size: clamp(2.3rem, 12vw, 4rem);
         line-height: 0.94;
         margin-bottom: 14px;
@@ -1820,6 +1845,7 @@ nav::-webkit-scrollbar-thumb {
     .stats-grid,
     .info-grid,
     .event-grid,
+    .conduct-grid,
     .news-grid,
     .gallery-grid,
     .dashboard-grid,
@@ -1958,6 +1984,10 @@ nav::-webkit-scrollbar-thumb {
 .ban-list-admin-items {
     display: grid;
     gap: 18px;
+}
+
+.clan-ban-records {
+    margin-top: 64px;
 }
 
 .ban-list-item {
