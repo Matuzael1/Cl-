@@ -1,13 +1,13 @@
 :root {
-    --bg-dark: #070b12;
-    --bg-panel: #101b29;
-    --bg-soft: #152338;
-    --accent: #ff8f2a;
-    --accent-strong: #ffb347;
-    --accent-deep: #ff5a3d;
-    --text: #edf3ff;
-    --muted: #c6d1e1;
-    --line: rgba(255,255,255,0.12);
+    --bg-dark: #080704;
+    --bg-panel: #17140b;
+    --bg-soft: #251e0c;
+    --accent: #d6aa22;
+    --accent-strong: #ffdc52;
+    --accent-deep: #98700f;
+    --text: #fffdf4;
+    --muted: #e1dac8;
+    --line: rgba(255,220,82,0.18);
     --shadow: rgba(0, 0, 0, 0.35);
 }
 
@@ -40,8 +40,8 @@ html {
 body {
     font-family: 'Inter', sans-serif;
     background:
-        radial-gradient(circle at top, rgba(255, 143, 42, 0.08), transparent 22%),
-        linear-gradient(180deg, #060a12 0%, #0b1220 100%);
+        radial-gradient(circle at top, rgba(255, 220, 82, 0.07), transparent 22%),
+        linear-gradient(180deg, #070604 0%, #0d0a05 100%);
     color: var(--text);
     position: relative;
     overflow-x: hidden;
@@ -51,8 +51,8 @@ body::before {
     content: "";
     position: fixed;
     inset: 0;
-    background-image: linear-gradient(rgba(9, 11, 18, 0.65), rgba(9, 11, 18, 0.82)),
-        linear-gradient(135deg, #101b29, #070b12);
+    background-image: linear-gradient(rgba(8, 7, 4, 0.65), rgba(8, 7, 4, 0.82)),
+        linear-gradient(135deg, #17140b, #080704);
     background-size: cover;
     background-position: center;
     background-attachment: fixed;
@@ -65,7 +65,7 @@ body::after {
     content: "";
     position: fixed;
     inset: 0;
-    background: linear-gradient(180deg, transparent 0%, rgba(7, 11, 18, 0.3) 100%);
+    background: linear-gradient(180deg, transparent 0%, rgba(8, 7, 4, 0.3) 100%);
     z-index: -1;
     pointer-events: none;
 }
@@ -76,8 +76,8 @@ body::after {
 }
 
 @keyframes glowPulse {
-    0%, 100% { box-shadow: 0 0 0 rgba(216, 178, 74, 0.2); }
-    50% { box-shadow: 0 0 30px rgba(216, 178, 74, 0.28); }
+    0%, 100% { box-shadow: 0 0 0 rgba(255, 220, 82, 0.16); }
+    50% { box-shadow: 0 0 30px rgba(255, 220, 82, 0.24); }
 }
 
 @keyframes fadeUp {
@@ -95,8 +95,8 @@ body::after {
     top: 0;
     z-index: 20;
     backdrop-filter: blur(16px);
-    background: rgba(8, 12, 18, 0.86);
-    border-bottom: 1px solid rgba(255, 179, 71, 0.2);
+    background: rgba(8, 7, 4, 0.94);
+    border-bottom: 1px solid rgba(255, 220, 82, 0.25);
     box-shadow: 0 10px 30px rgba(0,0,0,0.28);
 }
 
@@ -145,7 +145,7 @@ nav {
     overflow-x: auto;
     overflow-y: hidden;
     white-space: nowrap;
-    scrollbar-color: rgba(255, 179, 71, 0.55) transparent;
+    scrollbar-color: rgba(255, 220, 82, 0.62) transparent;
     scrollbar-width: thin;
 }
 
@@ -176,7 +176,7 @@ nav a:hover {
 
 nav a.is-active {
     color: var(--text);
-    background: rgba(255, 143, 42, 0.14);
+    background: rgba(255, 220, 82, 0.14);
     box-shadow: inset 0 -2px 0 var(--accent-strong);
 }
 
@@ -210,15 +210,15 @@ nav::-webkit-scrollbar {
 
 nav::-webkit-scrollbar-thumb {
     border-radius: 4px;
-    background: rgba(255, 179, 71, 0.55);
+    background: rgba(255, 220, 82, 0.62);
 }
 
 .hero {
     position: relative;
     padding: 130px 0 90px;
     background:
-        linear-gradient(135deg, rgba(12,17,27,0.7), rgba(10,15,25,0.93)),
-        linear-gradient(135deg, #172536, #0b1220 55%, #211b18);
+        linear-gradient(135deg, rgba(13,11,6,0.7), rgba(8,7,4,0.93)),
+        linear-gradient(135deg, #241d0d, #0b0a06 55%, #1b1709);
     overflow: hidden;
     min-height: 680px;
     display: flex;
@@ -229,7 +229,7 @@ nav::-webkit-scrollbar-thumb {
     content: "";
     position: absolute;
     inset: 0;
-    background: linear-gradient(90deg, rgba(10, 15, 25, 0.85) 0%, rgba(10, 15, 25, 0.35) 50%, rgba(10, 15, 25, 0.8) 100%);
+    background: linear-gradient(90deg, rgba(8, 7, 4, 0.85) 0%, rgba(8, 7, 4, 0.35) 50%, rgba(8, 7, 4, 0.8) 100%);
 }
 
 .hero-content {
@@ -305,9 +305,9 @@ nav::-webkit-scrollbar-thumb {
 }
 
 .btn.primary {
-    background: linear-gradient(135deg, var(--accent), var(--accent-deep));
-    color: #120d0a;
-    box-shadow: 0 14px 34px rgba(255, 117, 51, 0.38);
+    background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+    color: #181303;
+    box-shadow: 0 14px 34px rgba(214, 170, 34, 0.32);
 }
 
 .btn.secondary {
@@ -321,7 +321,7 @@ nav::-webkit-scrollbar-thumb {
 }
 
 :focus-visible {
-    outline: 3px solid #ffb347;
+    outline: 3px solid var(--accent-strong);
     outline-offset: 4px;
 }
 
@@ -342,8 +342,8 @@ nav::-webkit-scrollbar-thumb {
     width: 100%;
     max-width: 460px;
     justify-self: end;
-    background: linear-gradient(135deg, rgba(20, 30, 43, 0.96), rgba(15, 21, 27, 0.98));
-    border: 1px solid rgba(255, 179, 71, 0.45);
+    background: linear-gradient(135deg, rgba(35, 28, 11, 0.96), rgba(12, 10, 5, 0.98));
+    border: 1px solid rgba(255, 220, 82, 0.5);
     border-radius: 26px;
     padding: 30px 28px 24px;
     box-shadow: 0 25px 60px rgba(0,0,0,0.35);
@@ -354,7 +354,7 @@ nav::-webkit-scrollbar-thumb {
     content: "";
     position: absolute;
     inset: 0;
-    background: radial-gradient(circle at top right, rgba(216, 178, 74, 0.28), transparent 25%);
+    background: radial-gradient(circle at top right, rgba(255, 220, 82, 0.2), transparent 25%);
 }
 
 .banner-top,
@@ -380,7 +380,7 @@ nav::-webkit-scrollbar-thumb {
 }
 
 .banner-status {
-    color: #9ef6b9;
+    color: var(--accent-strong);
     font-size: 0.65rem;
 }
 
@@ -485,9 +485,9 @@ nav::-webkit-scrollbar-thumb {
 }
 
 .dark {
-    background: rgba(11, 17, 24, 0.82);
-    border-top: 1px solid rgba(255, 179, 71, 0.15);
-    border-bottom: 1px solid rgba(255, 179, 71, 0.15);
+    background: rgba(12, 10, 5, 0.82);
+    border-top: 1px solid rgba(255, 220, 82, 0.15);
+    border-bottom: 1px solid rgba(255, 220, 82, 0.15);
 }
 
 .section-title {
@@ -512,8 +512,8 @@ nav::-webkit-scrollbar-thumb {
     align-items: center;
     padding: 30px 32px;
     border-radius: 24px;
-    border: 1px solid rgba(255, 179, 71, 0.22);
-    background: linear-gradient(135deg, rgba(25, 35, 50, 0.96), rgba(13, 20, 28, 0.98));
+    border: 1px solid rgba(255, 220, 82, 0.26);
+    background: linear-gradient(135deg, rgba(34, 27, 10, 0.96), rgba(13, 11, 6, 0.98));
     box-shadow: 0 24px 54px rgba(0,0,0,0.22);
     position: relative;
     overflow: hidden;
@@ -523,7 +523,7 @@ nav::-webkit-scrollbar-thumb {
     content: "";
     position: absolute;
     inset: 0;
-    background: linear-gradient(120deg, rgba(255, 143, 42, 0.12), transparent 45%, rgba(255, 90, 61, 0.1));
+    background: linear-gradient(120deg, rgba(255, 220, 82, 0.13), transparent 45%, rgba(214, 170, 34, 0.08));
 }
 
 .feature-banner-copy,
@@ -561,8 +561,8 @@ nav::-webkit-scrollbar-thumb {
     justify-content: center;
     padding: 8px 12px;
     border-radius: 999px;
-    background: rgba(255, 179, 71, 0.08);
-    border: 1px solid rgba(255, 179, 71, 0.18);
+    background: rgba(255, 220, 82, 0.08);
+    border: 1px solid rgba(255, 220, 82, 0.2);
     color: var(--accent-strong);
     font-size: 0.68rem;
     letter-spacing: 0.12em;
@@ -607,8 +607,8 @@ nav::-webkit-scrollbar-thumb {
     gap: 12px;
     padding: 28px 18px;
     border-radius: 20px;
-    background: linear-gradient(180deg, rgba(21, 32, 46, 0.9), rgba(12, 18, 27, 0.88));
-    border: 1px solid rgba(255,255,255,0.08);
+    background: linear-gradient(180deg, rgba(30, 24, 9, 0.92), rgba(12, 10, 5, 0.96));
+    border: 1px solid rgba(255, 220, 82, 0.14);
     box-shadow: 0 18px 32px rgba(0,0,0,0.14);
 }
 
@@ -725,9 +725,9 @@ nav::-webkit-scrollbar-thumb {
 .social-join-note,
 .social-post,
 .social-empty-state {
-    border: 1px solid var(--line);
+    border: 1px solid rgba(255, 220, 82, 0.16);
     border-radius: 16px;
-    background: linear-gradient(160deg, rgba(20, 30, 43, 0.96), rgba(10, 15, 22, 0.96));
+    background: linear-gradient(160deg, rgba(28, 22, 8, 0.97), rgba(10, 9, 5, 0.98));
 }
 
 .social-compose {
@@ -794,7 +794,7 @@ nav::-webkit-scrollbar-thumb {
 
 .social-post {
     overflow: hidden;
-    background: rgba(12, 18, 27, 0.96);
+    background: rgba(12, 10, 5, 0.97);
 }
 
 .social-post-header {
@@ -818,7 +818,7 @@ nav::-webkit-scrollbar-thumb {
     max-height: 720px;
     aspect-ratio: 16 / 9;
     object-fit: contain;
-    background: #05070b;
+    background: #080704;
 }
 
 .social-caption {
@@ -925,8 +925,8 @@ nav::-webkit-scrollbar-thumb {
 .requirements,
 .form-panel,
 .auth-box {
-    background: linear-gradient(180deg, rgba(21, 32, 46, 0.96), rgba(12, 18, 27, 0.9));
-    border: 1px solid rgba(255,255,255,0.08);
+    background: linear-gradient(180deg, rgba(29, 23, 9, 0.97), rgba(12, 10, 5, 0.96));
+    border: 1px solid rgba(255, 220, 82, 0.14);
     border-radius: 24px;
     padding: 30px;
     box-shadow: 0 20px 38px rgba(0,0,0,0.18);
@@ -941,7 +941,7 @@ nav::-webkit-scrollbar-thumb {
 .stat-card:hover,
 .panel-card:hover {
     transform: translateY(-6px);
-    border-color: rgba(216, 178, 74, 0.5);
+    border-color: rgba(255, 220, 82, 0.58);
     box-shadow: 0 20px 35px rgba(0,0,0,0.2);
 }
 
@@ -971,8 +971,8 @@ nav::-webkit-scrollbar-thumb {
     grid-template-columns: 1.4fr 1fr;
     gap: 30px;
     align-items: center;
-    background: linear-gradient(135deg, rgba(20, 32, 43, 0.95), rgba(12, 19, 25, 0.95));
-    border: 1px solid rgba(255, 179, 71, 0.18);
+    background: linear-gradient(135deg, rgba(31, 25, 9, 0.96), rgba(12, 10, 5, 0.96));
+    border: 1px solid rgba(255, 220, 82, 0.2);
 }
 
 .recruit-box ul {
@@ -1038,13 +1038,13 @@ nav::-webkit-scrollbar-thumb {
 }
 
 .event-highlight-card {
-    border-left: 4px solid rgba(255, 179, 71, 0.8);
+    border-left: 4px solid rgba(255, 220, 82, 0.82);
 }
 
 .page-hero {
     position: relative;
     padding: 90px 0 20px;
-    background: linear-gradient(145deg, #142235, #0b1220 58%, #1a1716);
+    background: linear-gradient(145deg, #211a09, #0b0905 58%, #181307);
     overflow: hidden;
 }
 
@@ -1052,7 +1052,7 @@ nav::-webkit-scrollbar-thumb {
     content: "";
     position: absolute;
     inset: 0;
-    background: linear-gradient(90deg, rgba(10,15,25,0.85), rgba(10,15,25,0.4));
+    background: linear-gradient(90deg, rgba(8,7,4,0.85), rgba(8,7,4,0.4));
 }
 
 .page-hero .container {
@@ -1084,11 +1084,11 @@ nav::-webkit-scrollbar-thumb {
     padding: 18px;
     border-radius: 26px;
     background: linear-gradient(135deg, var(--accent), var(--accent-deep));
-    color: #111827;
+    color: #181303;
     font-family: 'Orbitron', sans-serif;
     font-size: 2.5rem;
     font-weight: 900;
-    box-shadow: 0 18px 30px rgba(255, 117, 51, 0.28);
+    box-shadow: 0 18px 30px rgba(214, 170, 34, 0.3);
     animation: float 4s ease-in-out infinite;
 }
 
@@ -1129,9 +1129,9 @@ nav::-webkit-scrollbar-thumb {
 .member-create-form {
     margin: 28px 0 40px;
     padding: 24px;
-    border: 1px solid var(--line);
+    border: 1px solid rgba(255, 220, 82, 0.2);
     border-radius: 16px;
-    background: rgba(10, 15, 22, 0.72);
+    background: rgba(12, 10, 5, 0.84);
 }
 
 .member-admin-fields {
@@ -1172,7 +1172,7 @@ nav::-webkit-scrollbar-thumb {
     padding: 14px 16px;
     border: 1px solid var(--line);
     border-radius: 12px;
-    background: rgba(10, 15, 22, 0.62);
+    background: rgba(12, 10, 5, 0.8);
 }
 
 .social-account-identity {
@@ -1196,9 +1196,9 @@ nav::-webkit-scrollbar-thumb {
 .event-create-form {
     margin: 28px 0;
     padding: 24px;
-    border: 1px solid var(--line);
+    border: 1px solid rgba(255, 220, 82, 0.2);
     border-radius: 16px;
-    background: rgba(10, 15, 22, 0.72);
+    background: rgba(12, 10, 5, 0.84);
 }
 
 .event-admin-list {
@@ -1212,7 +1212,7 @@ nav::-webkit-scrollbar-thumb {
     padding: 22px;
     border: 1px solid var(--line);
     border-radius: 16px;
-    background: rgba(10, 15, 22, 0.58);
+    background: rgba(12, 10, 5, 0.78);
 }
 
 .event-remove-form {
@@ -1225,8 +1225,8 @@ nav::-webkit-scrollbar-thumb {
 
 .member-card,
 .panel-card {
-    background: linear-gradient(180deg, rgba(20, 30, 43, 0.96), rgba(12, 19, 25, 0.92));
-    border: 1px solid var(--line);
+    background: linear-gradient(180deg, rgba(29, 23, 9, 0.97), rgba(12, 10, 5, 0.96));
+    border: 1px solid rgba(255, 220, 82, 0.17);
     border-radius: 20px;
     padding: 28px;
 }
@@ -1260,9 +1260,9 @@ nav::-webkit-scrollbar-thumb {
     max-width: 100%;
     margin: 0 0 18px;
     padding: 9px 16px 9px 10px;
-    border: 1px solid rgba(255, 179, 71, 0.2);
+    border: 1px solid rgba(255, 220, 82, 0.26);
     border-radius: 16px;
-    background: linear-gradient(115deg, rgba(8, 12, 18, 0.88), rgba(255, 143, 42, 0.07));
+    background: linear-gradient(115deg, rgba(8, 7, 4, 0.92), rgba(255, 220, 82, 0.08));
 }
 
 .member-rank-image {
@@ -1271,9 +1271,24 @@ nav::-webkit-scrollbar-thumb {
     height: 58px;
     flex: 0 0 58px;
     object-fit: contain;
-    border: 1px solid rgba(255, 179, 71, 0.32);
+    border: 1px solid rgba(255, 220, 82, 0.38);
     border-radius: 8px;
     filter: drop-shadow(0 5px 8px rgba(0, 0, 0, 0.32));
+}
+
+.member-rank-emblem {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    flex: 0 0 44px;
+    border: 1px solid rgba(255, 220, 82, 0.42);
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255, 220, 82, 0.18), rgba(8, 7, 4, 0.94));
+    color: var(--accent-strong);
+    font-size: 1.45rem;
+    line-height: 1;
+    text-shadow: 0 0 12px rgba(255, 220, 82, 0.48);
 }
 
 .member-rank-copy {
@@ -1379,9 +1394,9 @@ nav::-webkit-scrollbar-thumb {
 .auth-form input {
     width: 100%;
     padding: 12px 14px;
-    border: 1px solid rgba(255,255,255,0.12);
+    border: 1px solid rgba(255, 220, 82, 0.24);
     border-radius: 12px;
-    background: rgba(10, 16, 28, 0.8);
+    background: #100d06;
     color: var(--text);
     font: inherit;
 }
@@ -1416,10 +1431,10 @@ nav::-webkit-scrollbar-thumb {
 .privacy-notice {
     margin: 14px 0 18px;
     padding: 12px 14px;
-    border: 1px solid rgba(112, 240, 154, 0.24);
+    border: 1px solid rgba(255, 220, 82, 0.28);
     border-radius: 10px;
-    background: rgba(47, 122, 66, 0.1);
-    color: #d5ffe6;
+    background: rgba(255, 220, 82, 0.07);
+    color: var(--text);
     line-height: 1.6;
 }
 
@@ -1452,9 +1467,9 @@ nav::-webkit-scrollbar-thumb {
 .private-key-control input {
     width: 100%;
     padding: 12px;
-    border: 1px solid rgba(255,255,255,0.12);
+    border: 1px solid rgba(255, 220, 82, 0.24);
     border-radius: 10px;
-    background: rgba(10, 16, 28, 0.8);
+    background: #100d06;
     color: var(--text);
 }
 
@@ -1465,9 +1480,9 @@ nav::-webkit-scrollbar-thumb {
 
 .application-record {
     padding: 18px;
-    border: 1px solid rgba(255,255,255,0.1);
+    border: 1px solid rgba(255, 220, 82, 0.16);
     border-radius: 12px;
-    background: rgba(10, 16, 28, 0.62);
+    background: rgba(12, 10, 5, 0.82);
 }
 
 .application-record h3 {
@@ -1646,8 +1661,8 @@ nav::-webkit-scrollbar-thumb {
 
 .footer {
     padding: 26px 0 40px;
-    border-top: 1px solid rgba(255, 179, 71, 0.12);
-    background: rgba(8, 12, 18, 0.9);
+    border-top: 1px solid rgba(255, 220, 82, 0.16);
+    background: rgba(8, 7, 4, 0.94);
 }
 
 .footer-content {
@@ -1668,7 +1683,7 @@ nav::-webkit-scrollbar-thumb {
     color: var(--muted);
     font-size: 0.76rem;
     text-decoration: underline;
-    text-decoration-color: rgba(255, 179, 71, 0.35);
+    text-decoration-color: rgba(255, 220, 82, 0.48);
     text-underline-offset: 3px;
 }
 
@@ -1687,9 +1702,9 @@ nav::-webkit-scrollbar-thumb {
     align-items: center;
     gap: 18px;
     padding: 16px 20px;
-    border: 1px solid rgba(255, 179, 71, 0.35);
+    border: 1px solid rgba(255, 220, 82, 0.42);
     border-radius: 12px;
-    background: rgba(7, 11, 18, 0.97);
+    background: rgba(8, 7, 4, 0.98);
     box-shadow: 0 18px 44px rgba(0, 0, 0, 0.45);
 }
 
@@ -2002,8 +2017,8 @@ nav::-webkit-scrollbar-thumb {
     gap: 20px;
     padding: 28px 30px;
     border-radius: 22px;
-    border: 1px solid rgba(255, 179, 71, 0.2);
-    background: linear-gradient(135deg, rgba(20, 31, 45, 0.94), rgba(12, 18, 25, 0.94));
+    border: 1px solid rgba(255, 220, 82, 0.2);
+    background: linear-gradient(135deg, rgba(29, 23, 9, 0.95), rgba(12, 10, 5, 0.96));
 }
 
 .ban-list-preview p {
@@ -2029,8 +2044,8 @@ nav::-webkit-scrollbar-thumb {
     gap: 18px;
     padding: 24px 22px;
     border-radius: 20px;
-    background: linear-gradient(180deg, rgba(21, 32, 46, 0.96), rgba(12, 18, 27, 0.92));
-    border: 1px solid rgba(255,255,255,0.08);
+    background: linear-gradient(180deg, rgba(29, 23, 9, 0.97), rgba(12, 10, 5, 0.96));
+    border: 1px solid rgba(255, 220, 82, 0.16);
     box-shadow: 0 18px 30px rgba(0,0,0,0.14);
 }
 
@@ -2045,8 +2060,8 @@ nav::-webkit-scrollbar-thumb {
     margin-bottom: 10px;
     padding: 8px 10px;
     border-radius: 999px;
-    background: rgba(255, 179, 71, 0.08);
-    border: 1px solid rgba(255, 179, 71, 0.18);
+    background: rgba(255, 220, 82, 0.08);
+    border: 1px solid rgba(255, 220, 82, 0.2);
     color: var(--accent-strong);
     font-size: 0.62rem;
     font-weight: 800;

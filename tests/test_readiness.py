@@ -50,6 +50,8 @@ def test_roster_page_uses_dedicated_grid_for_member_cards(client):
 
     assert 'class="roster-grid"' in html
     assert html.count('class="member-card"') == 3
+    assert html.count('class="member-rank-emblem"') == 3
+    assert html.count('class="member-level"') == 3
 
 
 def test_ban_page_summarizes_game_conduct_and_separates_clan_records(client):
