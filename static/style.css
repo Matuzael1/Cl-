@@ -670,9 +670,39 @@ nav::-webkit-scrollbar-thumb {
     gap: 24px;
 }
 
+.members-container {
+    width: min(1360px, 96%);
+}
+
+.roster-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 24px;
+    margin-top: 40px;
+}
+
+.activities-container {
+    width: min(1600px, 96%);
+}
+
+.activity-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 24px;
+}
+
 @media (max-width: 1150px) {
-    .conduct-grid {
+    .conduct-grid,
+    .activity-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .roster-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .dashboard-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
     }
 }
 
@@ -881,7 +911,7 @@ nav::-webkit-scrollbar-thumb {
 }
 
 .dashboard-grid {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(5, minmax(0, 1fr));
     margin-top: 36px;
 }
 
@@ -1845,10 +1875,12 @@ nav::-webkit-scrollbar-thumb {
     .stats-grid,
     .info-grid,
     .event-grid,
+    .activity-grid,
     .conduct-grid,
     .news-grid,
     .gallery-grid,
     .dashboard-grid,
+    .roster-grid,
     .member-grid,
     .recruit-shell,
     .form-grid {

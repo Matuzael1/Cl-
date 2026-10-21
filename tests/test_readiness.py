@@ -45,6 +45,13 @@ def test_news_link_to_official_sources_without_unlicensed_copies(client):
     assert all(source in html for source in ('idx=366', 'idx=365', 'idx=363'))
 
 
+def test_roster_page_uses_dedicated_grid_for_member_cards(client):
+    html = client.get('/membros').get_data(as_text=True)
+
+    assert 'class="roster-grid"' in html
+    assert html.count('class="member-card"') == 3
+
+
 def test_ban_page_summarizes_game_conduct_and_separates_clan_records(client):
     html = client.get('/banimentos').get_data(as_text=True)
 
@@ -84,6 +91,8 @@ def test_home_and_recruitment_present_both_clan_games(client):
     assert 'JOGAMOS JUNTOS' in home
     assert 'DOIS JOGOS' not in home
     assert home.index('id="sobre"') < home.index('CLÃ MULTIJOGOS')
+    assert 'class="activity-grid"' in home
+    assert home.count('class="event-card event-card-featured"') == 4
     assert 'Ambos' in recruitment
     assert "form.querySelector('#game').value" in encryption_script
 
