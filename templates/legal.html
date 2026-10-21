@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="{{ title }} do site Blackwolves.">
+    <title>{{ title }} | Blackwolves</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script defer src="{{ url_for('static', filename='navigation.js') }}"></script>
+</head>
+<body>
+    <header class="topbar">
+        <div class="container nav">
+            <a class="brand" href="/" aria-label="Blackwolves - início">
+                <span class="brand-mark">BW</span>
+                <span>Blackwolves</span>
+            </a>
+            <nav aria-label="Navegação principal">
+                <a href="/">Início</a>
+                <a href="/membros">Membros</a>
+                <a href="/noticias">Notícias</a>
+                <a href="/social">Social</a>
+                <a href="/eventos">Eventos</a>
+                <a href="/recrutamento">Recrutamento</a>
+                <a href="/login">Login</a>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <section class="page-hero">
+            <div class="container">
+                <div>
+                    <p class="tag">INFORMAÇÕES DO SITE</p>
+                    <h1>{{ title }}</h1>
+                    <p>{{ intro }}</p>
+                    <p class="legal-updated">Atualizado em {{ updated_at }}</p>
+                </div>
+                <div class="page-badge" aria-hidden="true">BW</div>
+            </div>
+        </section>
+
+        <section class="page-section legal-section">
+            <div class="container legal-document">
+                {% for section in sections %}
+                <section class="legal-document-section">
+                    <h2>{{ section.title }}</h2>
+                    {% for paragraph in section.paragraphs %}
+                    <p>{{ paragraph }}</p>
+                    {% endfor %}
+                    {% if section.get('items') %}
+                    <ul>
+                        {% for item in section.get('items', []) %}
+                        <li>{{ item }}</li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+                </section>
+                {% endfor %}
+                <a class="text-link legal-back-link" href="/">Voltar ao início</a>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="container footer-content">
+            <div>
+                <h3>Blackwolves</h3>
+                <p>Clã de PointBlank: disciplina, foco e vitória.</p>
+            </div>
+            <a href="mailto:black.wolves.gm@gmail.com">black.wolves.gm@gmail.com</a>
+            {% include 'legal-links.html' %}
+        </div>
+    </footer>
+    {% include 'cookie-notice.html' %}
+</body>
+</html>

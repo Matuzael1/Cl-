@@ -54,6 +54,32 @@ def test_news_use_local_pointblank_assets(client):
         assert asset.mimetype == 'image/jpeg', image
 
 
+def test_legal_pages_and_cookie_notice_are_available(client):
+    pages = {
+        '/privacidade': ('Política de Privacidade', 'Social', 'AES-GCM'),
+        '/politica-de-privacidade': ('Política de Privacidade',),
+        '/termos': ('Termos de Serviço', 'publicar'),
+        '/termos-de-servico': ('Termos de Serviço',),
+        '/cookies': ('Aviso de Cookies', 'sessionStorage'),
+    }
+    for path, expected_content in pages.items():
+        response = client.get(path)
+        html = response.get_data(as_text=True)
+        assert response.status_code == 200, path
+        assert all(content in html for content in expected_content), path
+        assert 'cookie-notice' in html
+        assert 'Privacidade' in html and 'Termos' in html and 'Cookies' in html
+
+    for path in ('/', '/social', '/login', '/novidades', '/recrutamento'):
+        response = client.get(path)
+        assert response.status_code == 200
+        assert b'cookie-notice' in response.data, path
+
+    script = client.get('/static/cookie-notice.js')
+    assert script.status_code == 200
+    assert b'sessionStorage' in script.data
+
+
 def test_form_posts_require_csrf_but_recruitment_json_remains_available(client):
     for path in ('/login', '/cadastro', '/novidades', '/painel/banir', '/logout'):
         assert client.post(path, data={}).status_code == 400, path

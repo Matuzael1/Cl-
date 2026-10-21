@@ -497,6 +497,125 @@ def healthz():
     return jsonify(status='ok'), 200
 
 
+def render_legal_page(title, intro, sections):
+    return render_template(
+        'legal.html',
+        title=title,
+        intro=intro,
+        sections=sections,
+        updated_at=datetime.now(timezone.utc).strftime('%d/%m/%Y'),
+    )
+
+
+@app.route('/privacidade')
+@app.route('/politica-de-privacidade')
+def politica_privacidade():
+    return render_legal_page(
+        'Política de Privacidade',
+        'Esta página explica como o site Blackwolves trata dados pessoais e mídias publicados por seus usuários.',
+        [
+            {
+                'title': 'Responsável e contato',
+                'paragraphs': [
+                    'O site é administrado pelos responsáveis pelo clã Blackwolves. Para dúvidas, solicitações de acesso, correção ou remoção de dados, escreva para black.wolves.gm@gmail.com.',
+                ],
+            },
+            {
+                'title': 'Dados tratados',
+                'paragraphs': [
+                    'No cadastro, coletamos nome, username, e-mail e senha. A senha é armazenada como hash e não pode ser consultada em texto legível. No Social, tratamos username/nick, publicações, arquivos enviados e comentários.',
+                    'No recrutamento, o navegador cifra os campos antes do envio. O servidor armazena o conteúdo cifrado e não recebe os dados em formato legível; a chave privada fica com a administração. A newsletter guarda e-mail cifrado, um resumo criptográfico para evitar inscrições duplicadas e tokens de confirmação/descadastro em formato de hash.',
+                    'O servidor e o proxy podem registrar endereço IP, horário, rota acessada e informações técnicas de requisição para segurança e diagnóstico.',
+                ],
+            },
+            {
+                'title': 'Finalidades e compartilhamento',
+                'paragraphs': [
+                    'Usamos os dados para autenticar contas, administrar o clã, receber candidaturas, exibir publicações, responder comentários, enviar novidades solicitadas e proteger o serviço.',
+                    'Publicações e comentários do Social são visíveis a qualquer visitante. O cadastro na newsletter envia mensagens por SMTP do Gmail; o provedor pode tratar os dados necessários à entrega. O site não vende dados pessoais nem usa publicidade comportamental.',
+                ],
+            },
+            {
+                'title': 'Recrutamento cifrado',
+                'paragraphs': [
+                    'A cifra é feita no navegador com AES-GCM e a chave de dados é protegida pela chave pública RSA do site. Isso protege o conteúdo armazenado, mas não oferece a mesma garantia do WhatsApp contra um site ou servidor comprometido: o domínio entrega o JavaScript executado no navegador.',
+                    'Sem a chave privada correspondente, as candidaturas não podem ser lidas. A administração deve manter cópia de segurança segura dessa chave.',
+                ],
+            },
+            {
+                'title': 'Retenção e solicitações',
+                'paragraphs': [
+                    'Dados de conta, posts e comentários permanecem enquanto necessários para a operação do clã ou até serem removidos pelo owner. Candidaturas cifradas e backups podem permanecer enquanto necessários à seleção e à recuperação do serviço.',
+                    'Nos termos da LGPD, você pode solicitar confirmação e acesso ao tratamento, correção, anonimização, bloqueio ou eliminação de dados desnecessários, informação sobre compartilhamentos e revogação de consentimento aplicável. Envie o pedido para black.wolves.gm@gmail.com; poderemos confirmar sua identidade e reter dados quando houver obrigação legal ou necessidade de segurança.',
+                ],
+            },
+        ],
+    )
+
+
+@app.route('/termos')
+@app.route('/termos-de-servico')
+def termos_de_servico():
+    return render_legal_page(
+        'Termos de Serviço',
+        'Ao criar conta ou usar o Social Blackwolves, você concorda com estas regras de utilização.',
+        [
+            {
+                'title': 'Contas e acesso',
+                'paragraphs': [
+                    'Informe dados verdadeiros, proteja sua senha e não compartilhe o acesso. O cadastro público cria uma conta comum; somente o owner administra o site e vincula contas de integrantes a membros ativos do roster.',
+                    'Membros vinculados podem publicar e comentar. O visitante pode visualizar o feed público sem conta.',
+                    'Use o serviço apenas se puder aceitar estes termos e fornecer os dados necessários. Menores devem usar o site com a orientação e autorização de seus responsáveis, conforme as regras aplicáveis.',
+                ],
+            },
+            {
+                'title': 'Publicações e comentários',
+                'paragraphs': [
+                    'Você mantém seus direitos sobre o conteúdo enviado e declara ter autorização para publicá-lo. Ao publicar, permite que o site armazene e exiba esse conteúdo aos visitantes do Social.',
+                    'Não publique conteúdo ilegal, ameaças, assédio, dados pessoais de terceiros, malware, material sem autorização ou arquivos que violem as regras do PointBlank. O limite atual é 25 MB por imagem ou vídeo.',
+                ],
+            },
+            {
+                'title': 'Moderação e integridade',
+                'paragraphs': [
+                    'O autor pode remover suas publicações e comentários; o owner pode remover conteúdo do Social e suspender vínculos que violem estas regras. Hacks, macros, scripts proibidos, fraude e comportamento abusivo não são aceitos.',
+                    'O site é uma ferramenta comunitária independente e não é afiliado à Zepetto. PointBlank e seus materiais pertencem aos respectivos titulares.',
+                ],
+            },
+            {
+                'title': 'Disponibilidade e alterações',
+                'paragraphs': [
+                    'O serviço pode ficar temporariamente indisponível para manutenção, segurança ou falhas de provedores. Estes termos podem ser atualizados; a versão vigente será publicada nesta página.',
+                    'Dúvidas sobre estes termos: black.wolves.gm@gmail.com.',
+                ],
+            },
+        ],
+    )
+
+
+@app.route('/cookies')
+def politica_cookies():
+    return render_legal_page(
+        'Aviso de Cookies',
+        'O site usa apenas armazenamento necessário ao funcionamento e à segurança das contas.',
+        [
+            {
+                'title': 'Cookie de sessão essencial',
+                'paragraphs': [
+                    'O Flask usa o cookie de sessão (nome padrão: session) para manter o login e proteger formulários com CSRF. Ele é HttpOnly, SameSite=Lax e, em produção, Secure. Não usamos cookies de publicidade nem analytics.',
+                ],
+            },
+            {
+                'title': 'Aviso e fontes externas',
+                'paragraphs': [
+                    'O botão “Entendi” apenas fecha o aviso nesta aba usando sessionStorage; essa preferência não é um cookie. As páginas carregam fontes do Google Fonts, que recebe a requisição técnica do navegador quando elas são solicitadas.',
+                    'Você pode bloquear cookies nas configurações do navegador, mas isso impede login, publicação e envio de formulários protegidos. Para dúvidas, escreva para black.wolves.gm@gmail.com.',
+                ],
+            },
+        ],
+    )
+
+
 @app.route('/membros')
 def membros():
     db = get_db()
