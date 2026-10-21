@@ -517,15 +517,15 @@ def politica_privacidade():
             {
                 'title': 'Responsável e contato',
                 'paragraphs': [
-                    'O site é administrado pelos responsáveis pelo clã Blackwolves. Para dúvidas, solicitações de acesso, correção ou remoção de dados, escreva para black.wolves.gm@gmail.com.',
+                    'O site é operado pelo clã comunitário independente Blackwolves. Para identificar o responsável legal e enviar solicitações sobre dados pessoais, use o formulário de direitos LGPD ou escreva para black.wolves.gm@gmail.com. Os dados cadastrais oficiais do operador ainda precisam ser informados pelos responsáveis do clã.',
                 ],
             },
             {
                 'title': 'Dados tratados',
                 'paragraphs': [
-                    'No cadastro, coletamos nome, username, e-mail e senha. A senha é armazenada como hash e não pode ser consultada em texto legível. No Social, tratamos username/nick, publicações, arquivos enviados e comentários.',
-                    'No recrutamento, o navegador cifra os campos antes do envio. O servidor armazena o conteúdo cifrado e não recebe os dados em formato legível; a chave privada fica com a administração. A newsletter guarda e-mail cifrado, um resumo criptográfico para evitar inscrições duplicadas e tokens de confirmação/descadastro em formato de hash.',
-                    'O servidor e o proxy podem registrar endereço IP, horário, rota acessada e informações técnicas de requisição para segurança e diagnóstico.',
+                    'No cadastro, coletamos username, e-mail e senha; a senha é armazenada como hash. No Social, tratamos username/nick, publicações, arquivos enviados e comentários. Para solicitar uma conta, não pedimos nome completo.',
+                    'No recrutamento, coletamos apenas nick e e-mail. O navegador cifra esses campos antes do envio; o servidor armazena o conteúdo cifrado e a administração pode descriptografá-lo para avaliar a candidatura. A newsletter guarda e-mail cifrado, um resumo criptográfico para evitar inscrições duplicadas e tokens de confirmação/descadastro em formato de hash.',
+                    'O servidor, o provedor de hospedagem e o proxy podem registrar endereço IP, horário, rota acessada e informações técnicas de requisição para segurança e diagnóstico. Solicitações de direitos enviadas pelo formulário são encaminhadas por e-mail e não são copiadas para o banco de dados do site; o provedor de e-mail pode processar essa mensagem.',
                 ],
             },
             {
@@ -545,8 +545,8 @@ def politica_privacidade():
             {
                 'title': 'Retenção e solicitações',
                 'paragraphs': [
-                    'Dados de conta, posts e comentários permanecem enquanto necessários para a operação do clã ou até serem removidos pelo owner. Candidaturas cifradas e backups podem permanecer enquanto necessários à seleção e à recuperação do serviço.',
-                    'Nos termos da LGPD, você pode solicitar confirmação e acesso ao tratamento, correção, anonimização, bloqueio ou eliminação de dados desnecessários, informação sobre compartilhamentos e revogação de consentimento aplicável. Envie o pedido para black.wolves.gm@gmail.com; poderemos confirmar sua identidade e reter dados quando houver obrigação legal ou necessidade de segurança.',
+                    'A aplicação não executa uma rotina automática de expurgo. Contas, publicações e candidaturas podem permanecer até que o responsável atenda um pedido de encerramento/eliminação ou determine a remoção conforme a finalidade e as obrigações legais. Candidaturas e cópias de segurança exigem exclusão manual; backups podem persistir até serem substituídos. Solicite a exclusão pelo formulário de direitos LGPD.',
+                    'Nos termos da LGPD, você pode solicitar confirmação e acesso ao tratamento, correção, anonimização, bloqueio ou eliminação de dados desnecessários, informação sobre compartilhamentos e revogação de consentimento aplicável. Use o formulário de direitos LGPD ou escreva para black.wolves.gm@gmail.com. Podemos pedir informações proporcionais para confirmar sua identidade e reter dados quando houver obrigação legal ou necessidade de segurança.',
                 ],
             },
         ],
@@ -593,6 +593,78 @@ def termos_de_servico():
     )
 
 
+@app.route('/solicitacoes-lgpd', methods=['GET', 'POST'])
+def solicitacoes_lgpd():
+    status = None
+    status_type = 'info'
+    request_types = {
+        'access': 'Confirmação ou acesso',
+        'correction': 'Correção',
+        'deletion': 'Eliminação ou anonimização',
+        'consent': 'Revogação de consentimento',
+        'other': 'Outra solicitação relacionada à LGPD',
+    }
+
+    if request.method == 'POST':
+        request_type = request.form.get('request_type', '')
+        email = request.form.get('email', '').strip().lower()
+        username = request.form.get('username', '').strip()
+        details = request.form.get('details', '').strip()
+        if (
+            request_type not in request_types
+            or len(email) > 254
+            or not re.fullmatch(r'[^\s@]+@[^\s@]+\.[^\s@]+', email)
+            or len(username) > 80
+            or len(details) > 2000
+        ):
+            status = 'Confira o tipo de solicitação e informe um e-mail válido.'
+            status_type = 'error'
+        else:
+            body = (
+                f"Tipo de solicitação: {request_types[request_type]}\n"
+                f"E-mail para retorno: {email}\n"
+                f"Username (se aplicável): {username or 'não informado'}\n\n"
+                f"Detalhes: {details or 'não informados'}"
+            )
+            if send_plain_email(EMAIL_TO, 'Solicitação de direitos LGPD', body):
+                status = 'Solicitação encaminhada. O e-mail será usado para tratar este pedido e poderá ser mantido pelo provedor de e-mail.'
+                status_type = 'success'
+            else:
+                status = 'Não foi possível encaminhar a solicitação agora. Envie-a para black.wolves.gm@gmail.com.'
+                status_type = 'error'
+
+    return render_template(
+        'privacy-request.html',
+        status=status,
+        status_type=status_type,
+        request_types=request_types,
+    )
+
+
+@app.route('/reembolso')
+def politica_reembolso():
+    return render_legal_page(
+        'Política de Reembolso',
+        'Informações sobre pagamentos e reembolsos relacionados ao site Blackwolves.',
+        [
+            {
+                'title': 'Serviço gratuito',
+                'paragraphs': [
+                    'Atualmente, o site não vende produtos, assinaturas, inscrições pagas ou serviços e não recebe pagamentos. Portanto, não há cobrança do site a reembolsar.',
+                    'Não envie dados de cartão, senhas ou pagamentos por formulários, redes sociais ou e-mail do clã. Compras feitas diretamente com terceiros devem ser tratadas com o respectivo fornecedor.',
+                ],
+            },
+            {
+                'title': 'Vendas futuras e direitos legais',
+                'paragraphs': [
+                    'Se o site passar a oferecer produtos ou serviços pagos, as condições aplicáveis serão informadas antes da compra. Esta política não limita direitos previstos na legislação de defesa do consumidor.',
+                    'Dúvidas: black.wolves.gm@gmail.com.',
+                ],
+            },
+        ],
+    )
+
+
 @app.route('/cookies')
 def politica_cookies():
     return render_legal_page(
@@ -608,7 +680,7 @@ def politica_cookies():
             {
                 'title': 'Aviso e fontes externas',
                 'paragraphs': [
-                    'O botão “Entendi” apenas fecha o aviso nesta aba usando sessionStorage; essa preferência não é um cookie. As páginas carregam fontes do Google Fonts, que recebe a requisição técnica do navegador quando elas são solicitadas.',
+                    'O botão “Entendi” apenas fecha o aviso nesta aba usando sessionStorage; essa preferência não é um cookie. O site não carrega scripts de analytics, pixels de publicidade ou fontes de terceiros.',
                     'Você pode bloquear cookies nas configurações do navegador, mas isso impede login, publicação e envio de formulários protegidos. Para dúvidas, escreva para black.wolves.gm@gmail.com.',
                 ],
             },
@@ -637,24 +709,18 @@ def noticias():
             'data': '30 set 2026',
             'titulo': 'Notas de atualização: 30/09',
             'texto': 'A atualização oficial reúne eventos ativos, conteúdos da loja e novidades da temporada. Consulte os períodos e detalhes no anúncio.',
-            'imagem': url_for('static', filename='images/news/pointblank-gameplay.jpg'),
-            'alt': 'Captura de gameplay de Point Blank em confronto num mapa urbano.',
             'fonte': 'https://pointblank.zepetto.com/br/news/view?idx=366&page=1',
         },
         {
             'data': '30 set 2026',
             'titulo': 'PBNC 2026: semifinal presencial',
             'texto': 'Quatro equipes avançaram para as semifinais presenciais do Point Blank National Championship, marcadas para 24 de outubro em São Paulo.',
-            'imagem': url_for('static', filename='images/news/pointblank-esports-arena.jpg'),
-            'alt': 'Arena lotada durante uma competição oficial de Point Blank.',
             'fonte': 'https://pointblank.zepetto.com/br/news/view?idx=365&page=1',
         },
         {
             'data': '17 set 2026',
             'titulo': 'Ranked Match: Temporada 5',
             'texto': 'A temporada competitiva usa o modo e-sports, com partidas decididas em até 16 rounds e pontuação por desempenho individual.',
-            'imagem': url_for('static', filename='images/news/pointblank-rank-interface.jpg'),
-            'alt': 'Interface de Point Blank com soldado e árvore de títulos da conta.',
             'fonte': 'https://pointblank.zepetto.com/br/news/view?idx=363&page=1',
         },
     ]
@@ -707,6 +773,9 @@ def social_publicar():
     caption = request.form.get('caption', '').strip()
     if len(caption) > 500:
         flash('A legenda pode ter no máximo 500 caracteres.', 'error')
+        return redirect(url_for('social'))
+    if request.form.get('rights_confirmed') != 'on':
+        flash('Confirme que tem autorização para publicar esta mídia.', 'error')
         return redirect(url_for('social'))
 
     upload = request.files.get('media')
@@ -945,14 +1014,13 @@ def cadastro():
         username = request.form.get('username', '').strip()
         email = request.form.get('email', '').strip()
         password = request.form.get('password', '')
-        nome = request.form.get('nome', '').strip()
+        consent = request.form.get('consent') == 'on'
 
-        if not all([username, email, password, nome]):
-            mensagem = 'Preencha todos os campos do cadastro.'
+        if not all([username, email, password]) or not consent:
+            mensagem = 'Preencha os campos obrigatórios e confirme que leu os termos e a política de privacidade.'
             tipo = 'error'
         elif (
-            len(nome) > 120
-            or len(username) > 80
+            len(username) > 80
             or len(email) > 254
             or len(password) < 12
             or len(password) > 128

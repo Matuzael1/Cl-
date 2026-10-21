@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Formulário para solicitações de direitos sobre dados pessoais conforme a LGPD.">
+    <title>Direitos LGPD | Blackwolves</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script defer src="{{ url_for('static', filename='navigation.js') }}"></script>
+</head>
+<body>
+    <a class="skip-link" href="#main-content">Pular para o conteúdo</a>
+    <header class="topbar">
+        <div class="container nav">
+            <a class="brand" href="/" aria-label="Blackwolves - início">
+                <img class="brand-logo" src="{{ url_for('static', filename='images/blackwolves-gaming-logo.jpg') }}" alt="Blackwolves Gaming">
+                <span>Blackwolves</span>
+            </a>
+            <nav aria-label="Navegação principal">
+                <a href="/">Início</a>
+                <a href="/privacidade">Privacidade</a>
+                <a href="/termos">Termos</a>
+                <a href="/reembolso">Reembolso</a>
+            </nav>
+        </div>
+    </header>
+
+    <main id="main-content" class="auth-shell" tabindex="-1">
+        <section class="auth-box" aria-labelledby="privacy-request-title">
+            <p class="tag">PRIVACIDADE</p>
+            <h1 id="privacy-request-title">Exercer direitos LGPD</h1>
+            <p>Use este formulário para solicitar confirmação ou acesso, correção, eliminação/anonimização, revogação de consentimento ou outra providência sobre seus dados.</p>
+            <p class="privacy-notice">Não inclua senhas, documentos ou dados sensíveis. O pedido será encaminhado por e-mail, não ficará no banco de dados do site e poderá ser tratado pelo provedor de e-mail.</p>
+
+            {% if status %}
+            <div class="{% if status_type == 'success' %}success-box{% else %}error-box{% endif %}" role="status" aria-live="polite">{{ status }}</div>
+            {% endif %}
+
+            <form method="POST" class="auth-form">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <div class="form-field">
+                    <label for="request-type">Tipo de solicitação</label>
+                    <select id="request-type" name="request_type" required>
+                        {% for value, label in request_types.items() %}
+                        <option value="{{ value }}">{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-field">
+                    <label for="request-email">E-mail para retorno</label>
+                    <input id="request-email" name="email" type="email" maxlength="254" autocomplete="email" required>
+                </div>
+                <div class="form-field">
+                    <label for="request-username">Username da conta, se aplicável</label>
+                    <input id="request-username" name="username" maxlength="80" autocomplete="username">
+                </div>
+                <div class="form-field">
+                    <label for="request-details">Detalhes necessários para localizar o pedido</label>
+                    <textarea id="request-details" name="details" maxlength="2000"></textarea>
+                </div>
+                <button type="submit" class="btn primary submit-btn">Enviar solicitação</button>
+            </form>
+            <p class="newsletter-privacy">Se o envio falhar, escreva para <a href="mailto:black.wolves.gm@gmail.com">black.wolves.gm@gmail.com</a>.</p>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="container footer-content">
+            <div>
+                <h2>Blackwolves</h2>
+                <p>Clã comunitário independente de PointBlank.</p>
+            </div>
+            <a href="mailto:black.wolves.gm@gmail.com">black.wolves.gm@gmail.com</a>
+            {% include 'legal-links.html' %}
+        </div>
+    </footer>
+    {% include 'cookie-notice.html' %}
+</body>
+</html>

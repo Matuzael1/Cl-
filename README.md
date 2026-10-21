@@ -56,6 +56,6 @@ Em produção, o banco fica em `/home/blackwolves/data/blackwolves.db`, separado
 
 Integrantes devem criar uma conta pelo cadastro usando o nick do jogo como username. O owner vincula essa conta a um membro ativo no painel; somente depois a pessoa pode publicar fotos/vídeos e comentar. São aceitos JPG, PNG, WebP, MP4 e WebM de até 25 MB. O feed é público para leitura; o autor ou owner pode remover posts, e o autor ou owner pode apagar comentários. Em produção, os arquivos ficam em `/home/blackwolves/data/social_uploads`, fora do checkout; inclua essa pasta nos backups do servidor.
 
-## Imagens de notícias
+## Imagens e direitos autorais
 
-As imagens locais de gameplay e e-sports são capturas da página oficial do PointBlank. Cada card de notícias aponta para o anúncio correspondente da Zepetto.
+As capturas de tela do PointBlank foram removidas da página de notícias porque o repositório não contém licença de reutilização. Os cards apontam para os anúncios oficiais da Zepetto. Reutilize imagens do jogo somente após confirmar autorização/licença e registre a origem e os termos aplicáveis. Conteúdo publicado no Social é enviado por usuários, que devem ter autorização para compartilhá-lo conforme os Termos de Serviço.

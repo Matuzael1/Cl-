@@ -4,17 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Social | Blackwolves</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <script defer src="{{ url_for('static', filename='navigation.js') }}"></script>
 </head>
 <body>
+    <a class="skip-link" href="#main-content">Pular para o conteúdo</a>
     <header class="topbar">
         <div class="container nav">
             <div class="brand">
-                <span class="brand-mark">BW</span>
+                <img class="brand-logo" src="{{ url_for('static', filename='images/blackwolves-gaming-logo.jpg') }}" alt="Blackwolves Gaming">
                 <span>Blackwolves</span>
             </div>
             <nav>
@@ -26,12 +24,12 @@
                 <a href="/recrutamento">Recrutamento</a>
                 <a href="/painel">Painel</a>
                 <a href="/login">Login</a>
-                <a href="https://www.instagram.com/black.wolves.pb?stkn=MWNuY2c4ZW1tanUwMw==" target="_blank" rel="noopener noreferrer">Instagram</a>
+                <a href="https://www.instagram.com/black.wolves.pb/" target="_blank" rel="noopener noreferrer">Instagram</a>
             </nav>
         </div>
     </header>
 
-    <main>
+    <main id="main-content" tabindex="-1">
         <section class="page-hero">
             <div class="container">
                 <div>
@@ -39,7 +37,7 @@
                     <h1>Social Blackwolves</h1>
                     <p>Momentos de jogo e vida do clã compartilhados pelos membros.</p>
                 </div>
-                <div class="page-badge">BW</div>
+                <div class="page-badge"><img class="page-badge-image" src="{{ url_for('static', filename='images/blackwolves-gaming-logo.jpg') }}" alt="Logo Blackwolves Gaming"></div>
             </div>
         </section>
 
@@ -65,6 +63,10 @@
                             <input id="social-media" name="media" type="file" accept="image/jpeg,image/png,image/webp,video/mp4,video/webm" required>
                             <label for="social-caption">Legenda</label>
                             <textarea id="social-caption" name="caption" maxlength="500" placeholder="Conte sobre este momento no jogo ou no clã."></textarea>
+                            <label class="checkbox">
+                                <input type="checkbox" name="rights_confirmed" required>
+                                Tenho autorização para publicar esta imagem ou vídeo e não exponho dados pessoais de terceiros.
+                            </label>
                             <button class="btn primary" type="submit">Publicar</button>
                         </form>
                     </section>
@@ -92,12 +94,12 @@
                             </header>
 
                             {% if post.media_kind == 'video' %}
-                            <video class="social-post-media" controls preload="metadata" playsinline>
+                            <video class="social-post-media" controls preload="metadata" playsinline aria-label="Vídeo publicado por {{ post.author_name }} no Social Blackwolves{% if post.caption %}: {{ post.caption }}{% endif %}">
                                 <source src="{{ url_for('social_media_file', filename=post.media_filename) }}" type="{{ 'video/mp4' if post.media_filename.endswith('.mp4') else 'video/webm' }}">
                                 Seu navegador não consegue reproduzir este vídeo.
                             </video>
                             {% else %}
-                            <img class="social-post-media" src="{{ url_for('social_media_file', filename=post.media_filename) }}" alt="Publicação de {{ post.author_name }} no Social Blackwolves" loading="lazy" decoding="async">
+                            <img class="social-post-media" src="{{ url_for('social_media_file', filename=post.media_filename) }}" alt="{{ post.caption or ('Imagem publicada por ' ~ post.author_name ~ ' no Social Blackwolves') }}" loading="lazy" decoding="async">
                             {% endif %}
 
                             {% if post.caption %}
@@ -148,7 +150,7 @@
         <div class="container footer-content">
             <div>
                 <h3>Blackwolves</h3>
-                <p>Clã de PointBlank: disciplina, foco e vitória.</p>
+                <p>Clã comunitário independente de PointBlank.</p>
             </div>
             <a href="mailto:black.wolves.gm@gmail.com">black.wolves.gm@gmail.com</a>
             {% include 'legal-links.html' %}

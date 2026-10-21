@@ -54,13 +54,8 @@ if (form) {
             );
             const iv = crypto.getRandomValues(new Uint8Array(12));
             const data = {
-                nome: form.querySelector('#nome').value,
                 nick: form.querySelector('#nick').value,
-                idade: form.querySelector('#idade').value,
                 email: form.querySelector('#email').value,
-                funcao: form.querySelector('#role').value,
-                experiencia: form.querySelector('#experiencia').value,
-                discord: form.querySelector('#discord').value,
                 aceite: form.querySelector('#aceite').checked,
             };
             const ciphertext = await crypto.subtle.encrypt(

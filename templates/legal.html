@@ -5,17 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="{{ title }} do site Blackwolves.">
     <title>{{ title }} | Blackwolves</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <script defer src="{{ url_for('static', filename='navigation.js') }}"></script>
 </head>
 <body>
+    <a class="skip-link" href="#main-content">Pular para o conteúdo</a>
     <header class="topbar">
         <div class="container nav">
             <a class="brand" href="/" aria-label="Blackwolves - início">
-                <span class="brand-mark">BW</span>
+                <img class="brand-logo" src="{{ url_for('static', filename='images/blackwolves-gaming-logo.jpg') }}" alt="Blackwolves Gaming">
                 <span>Blackwolves</span>
             </a>
             <nav aria-label="Navegação principal">
@@ -30,7 +28,7 @@
         </div>
     </header>
 
-    <main>
+    <main id="main-content" tabindex="-1">
         <section class="page-hero">
             <div class="container">
                 <div>
@@ -39,7 +37,7 @@
                     <p>{{ intro }}</p>
                     <p class="legal-updated">Atualizado em {{ updated_at }}</p>
                 </div>
-                <div class="page-badge" aria-hidden="true">BW</div>
+                <div class="page-badge" aria-hidden="true"><img class="page-badge-image" src="{{ url_for('static', filename='images/blackwolves-gaming-logo.jpg') }}" alt=""></div>
             </div>
         </section>
 
@@ -69,7 +67,7 @@
         <div class="container footer-content">
             <div>
                 <h3>Blackwolves</h3>
-                <p>Clã de PointBlank: disciplina, foco e vitória.</p>
+                <p>Clã comunitário independente de PointBlank.</p>
             </div>
             <a href="mailto:black.wolves.gm@gmail.com">black.wolves.gm@gmail.com</a>
             {% include 'legal-links.html' %}

@@ -22,7 +22,7 @@ def client(tmp_path, monkeypatch):
 
 
 def test_healthcheck_and_public_pages(client):
-    for path in ('/', '/membros', '/eventos', '/noticias', '/social', '/banimentos', '/recrutamento', '/novidades', '/cadastro', '/login'):
+    for path in ('/', '/membros', '/eventos', '/noticias', '/social', '/banimentos', '/recrutamento', '/novidades', '/cadastro', '/login', '/solicitacoes-lgpd', '/reembolso'):
         response = client.get(path)
         assert response.status_code == 200, path
         assert response.headers['X-Content-Type-Options'] == 'nosniff'
@@ -34,24 +34,27 @@ def test_healthcheck_and_public_pages(client):
     assert response.get_json() == {'status': 'ok'}
 
 
-def test_news_use_local_pointblank_assets(client):
+def test_news_link_to_official_sources_without_unlicensed_copies(client):
     response = client.get('/noticias')
     html = response.get_data(as_text=True)
 
     assert response.status_code == 200
     assert 'unsplash.com' not in html
-    assert html.count('class="news-visual"') == 3
+    assert 'class="news-visual"' not in html
     assert html.count('Ver publica\u00e7\u00e3o oficial') == 3
     assert all(source in html for source in ('idx=366', 'idx=365', 'idx=363'))
 
-    for image in (
-        'pointblank-gameplay.jpg',
-        'pointblank-esports-arena.jpg',
-        'pointblank-rank-interface.jpg',
-    ):
-        asset = client.get(f'/static/images/news/{image}')
-        assert asset.status_code == 200, image
-        assert asset.mimetype == 'image/jpeg', image
+
+def test_blackwolves_logo_is_served_and_used_by_brand_elements(client):
+    response = client.get('/')
+    html = response.get_data(as_text=True)
+    logo = client.get('/static/images/blackwolves-gaming-logo.jpg')
+
+    assert logo.status_code == 200
+    assert logo.mimetype == 'image/jpeg'
+    assert logo.data.startswith(b'\xff\xd8\xff')
+    assert html.count('/static/images/blackwolves-gaming-logo.jpg') >= 2
+    assert 'alt="Blackwolves Gaming"' in html
 
 
 def test_legal_pages_and_cookie_notice_are_available(client):
@@ -61,6 +64,8 @@ def test_legal_pages_and_cookie_notice_are_available(client):
         '/termos': ('Termos de Serviço', 'publicar'),
         '/termos-de-servico': ('Termos de Serviço',),
         '/cookies': ('Aviso de Cookies', 'sessionStorage'),
+        '/solicitacoes-lgpd': ('Exercer direitos LGPD', 'E-mail para retorno'),
+        '/reembolso': ('Política de Reembolso', 'não recebe pagamentos'),
     }
     for path, expected_content in pages.items():
         response = client.get(path)
@@ -80,8 +85,28 @@ def test_legal_pages_and_cookie_notice_are_available(client):
     assert b'sessionStorage' in script.data
 
 
+def test_public_pages_support_keyboard_and_avoid_third_party_tracking(client):
+    paths = (
+        '/', '/privacidade', '/termos', '/cookies', '/solicitacoes-lgpd',
+        '/reembolso', '/cadastro', '/login', '/recrutamento', '/social',
+        '/noticias', '/novidades',
+    )
+    for path in paths:
+        html = client.get(path).get_data(as_text=True)
+        assert 'Pular para o conteúdo' in html, path
+        assert 'id="main-content"' in html, path
+        assert 'fonts.googleapis.com' not in html, path
+        assert 'googletagmanager.com' not in html, path
+        assert 'google-analytics.com' not in html, path
+        assert 'facebook.net' not in html, path
+
+    stylesheet = client.get('/static/style.css').get_data(as_text=True)
+    assert ':focus-visible' in stylesheet
+    assert 'prefers-reduced-motion' in stylesheet
+
+
 def test_form_posts_require_csrf_but_recruitment_json_remains_available(client):
-    for path in ('/login', '/cadastro', '/novidades', '/painel/banir', '/logout'):
+    for path in ('/login', '/cadastro', '/novidades', '/solicitacoes-lgpd', '/painel/banir', '/logout'):
         assert client.post(path, data={}).status_code == 400, path
     assert client.get('/logout').status_code == 405
 
@@ -125,10 +150,10 @@ def test_signup_requires_csrf_and_enforces_password_length(client):
 
     form_data = {
         'csrf_token': csrf_token,
-        'nome': 'Player Test',
         'username': 'player-test',
         'email': 'player@example.com',
         'password': 'senha-curta',
+        'consent': 'on',
     }
     weak_password = client.post('/cadastro', data=form_data)
     assert weak_password.status_code == 200
@@ -145,6 +170,31 @@ def test_signup_requires_csrf_and_enforces_password_length(client):
             'SELECT role FROM users WHERE username = ?', ('player-test',)
         ).fetchone()
     assert user['role'] == 'member'
+
+
+def test_privacy_request_is_emailed_without_database_storage(client, monkeypatch):
+    sent = []
+    monkeypatch.setattr(application, 'send_plain_email', lambda recipient, subject, body: sent.append((recipient, subject, body)) or True)
+    client.get('/solicitacoes-lgpd')
+    with client.session_transaction() as state:
+        csrf_token = state['_csrf_token']
+
+    response = client.post('/solicitacoes-lgpd', data={
+        'csrf_token': csrf_token,
+        'request_type': 'deletion',
+        'email': 'player@example.com',
+        'username': 'player-test',
+        'details': 'Remover a conta.',
+    })
+
+    assert response.status_code == 200
+    assert b'Solicita\xc3\xa7\xc3\xa3o encaminhada' in response.data
+    assert len(sent) == 1
+    assert sent[0][0] == application.EMAIL_TO
+    assert 'player@example.com' in sent[0][2]
+    with application.app.app_context():
+        tables = {row['name'] for row in application.get_db().execute("SELECT name FROM sqlite_master WHERE type='table'")}
+    assert 'privacy_requests' not in tables
 
 
 def test_legacy_admin_role_cannot_access_owner_panel_or_mutate_data(client):
@@ -305,9 +355,21 @@ def test_social_owner_links_member_and_member_posts_comments_and_media(client):
     with member_client.session_transaction() as state:
         csrf_token = state['_csrf_token']
 
+    rejected_upload = member_client.post('/social/publicar', data={
+        'csrf_token': csrf_token,
+        'caption': 'Mídia sem autorização confirmada.',
+        'media': (BytesIO(b'\xff\xd8\xffrejected-image'), 'rejected.jpg', 'image/jpeg'),
+    }, content_type='multipart/form-data')
+    assert rejected_upload.status_code == 302
+    with application.app.app_context():
+        assert application.get_db().execute(
+            'SELECT COUNT(*) FROM social_posts WHERE user_id = ?', (user['id'],)
+        ).fetchone()[0] == 0
+
     uploaded = member_client.post('/social/publicar', data={
         'csrf_token': csrf_token,
         'caption': 'Primeira publicação de teste.',
+        'rights_confirmed': 'on',
         'media': (BytesIO(b'\xff\xd8\xfffake-jpeg-data'), 'screenshot.jpg', 'image/jpeg'),
     }, content_type='multipart/form-data')
     assert uploaded.status_code == 302
@@ -326,6 +388,7 @@ def test_social_owner_links_member_and_member_posts_comments_and_media(client):
     assert comment.status_code == 302
     feed = member_client.get('/social').get_data(as_text=True)
     assert 'Primeira publicação de teste.' in feed
+    assert 'alt="Primeira publicação de teste."' in feed
     assert 'Ótima partida!' in feed
 
     public_client = application.app.test_client()
@@ -386,6 +449,7 @@ def test_social_unlinked_user_cannot_publish_and_member_cannot_remove_others_pos
     owner_media = owner.post('/social/publicar', data={
         'csrf_token': owner_csrf,
         'caption': 'Post do owner.',
+        'rights_confirmed': 'on',
         'media': (BytesIO(b'\xff\xd8\xffowner-image'), 'owner.jpg', 'image/jpeg'),
     }, content_type='multipart/form-data')
     assert owner_media.status_code == 302
@@ -415,6 +479,7 @@ def test_social_unlinked_user_cannot_publish_and_member_cannot_remove_others_pos
     video = member_client.post('/social/publicar', data={
         'csrf_token': member_csrf,
         'caption': 'Vídeo da partida.',
+        'rights_confirmed': 'on',
         'media': (BytesIO(b'\x1a\x45\xdf\xa3webm-test-data'), 'round.webm', 'video/webm'),
     }, content_type='multipart/form-data')
     assert video.status_code == 302
